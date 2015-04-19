@@ -12,7 +12,9 @@ class User(UserBase):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    fullname = Column(String)
-    password = Column(String)
-
-
+    employee_id = Column(String)
+    phone_number = Column(String)
+    birth_date = Column(String)
+    title = Column(String)
+    education = Column(String)
+    is_busy = Column(String)
