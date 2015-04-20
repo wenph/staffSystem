@@ -30,6 +30,8 @@ class staff_tab(QtGui.QWidget):
 
         vbox = QtGui.QVBoxLayout()
         self.my_table = MyTable()
+        self.my_table.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.my_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         vbox.addLayout(editAreaHbox)
         vbox.addWidget(self.my_table)
 
@@ -40,6 +42,7 @@ class staff_tab(QtGui.QWidget):
         self.setWindowTitle('box layout')
         self.connect(addButton, QtCore.SIGNAL('clicked()'), self.add)
         self.connect(refreshButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh)
+        self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete)
 
     def add(self):
         dialog = Dialog(parent=self)
@@ -54,8 +57,8 @@ class staff_tab(QtGui.QWidget):
             )
             StaffManager.add_staff(user)
             self.my_table.refresh()
-
         dialog.destroy()
+
 
 
 class MyTable(QtGui.QTableWidget):
@@ -82,6 +85,15 @@ class MyTable(QtGui.QTableWidget):
                 self.setItem(i,j,newItem)
                 j = j + 1
             i = i + 1
+
+    def delete(self):
+        indexes = self.selectionModel().selectedRows()
+        ids_list = []
+        for index in sorted(indexes):
+            id_text = self.item(index.row(), 0).text()
+            ids_list.append(int(id_text))
+        StaffManager.delete_staff(ids_list)
+        self.refresh()
 
 
 class Dialog(QtGui.QDialog):

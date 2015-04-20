@@ -11,8 +11,11 @@ class StaffManager(object):
         session.commit()
 
     @staticmethod
-    def delete_staff():
-        pass
+    def delete_staff(ids_list):
+        items = session.query(User).filter(User.id.in_(ids_list))
+        for item in items:
+            session.delete(item)
+        session.commit()
 
     @staticmethod
     def search_staff():
