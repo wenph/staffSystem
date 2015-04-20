@@ -1,10 +1,10 @@
 #coding=utf-8
 __author__ = 'admin'
 
-import sys
-from PyQt4 import QtGui, QtCore, QtWebKit
+from PyQt4 import QtGui, QtCore
 from staff_models import User
 from staff_manager import StaffManager
+from apps.utils.tools import ToolsManager
 
 
 class staff_tab(QtGui.QWidget):
@@ -16,6 +16,8 @@ class staff_tab(QtGui.QWidget):
         deleteButton = QtGui.QPushButton("删除")
         updateButton = QtGui.QPushButton("更新")
         refreshButton = QtGui.QPushButton("刷新")
+        allStaffButton = QtGui.QPushButton("所有人员")
+        idleStaffButton = QtGui.QPushButton("闲置人员")
 
         grid = QtGui.QGridLayout()
         grid.addWidget(addButton, 1, 0)
@@ -23,9 +25,14 @@ class staff_tab(QtGui.QWidget):
         grid.addWidget(updateButton, 2, 0)
         grid.addWidget(refreshButton, 2, 1)
 
+        searchHbox = QtGui.QHBoxLayout()
+        searchHbox.addWidget(allStaffButton)
+        searchHbox.addWidget(idleStaffButton)
+
         editAreaHbox = QtGui.QHBoxLayout()
         #editAreaHbox.addStretch(1)
         editAreaHbox.addLayout(grid)
+        editAreaHbox.addLayout(searchHbox)
         editAreaHbox.addStretch(1)
 
         vbox = QtGui.QVBoxLayout()
@@ -40,12 +47,24 @@ class staff_tab(QtGui.QWidget):
         self.setLayout(vbox)
 
         self.setWindowTitle('box layout')
-        self.connect(addButton, QtCore.SIGNAL('clicked()'), self.add)
-        self.connect(refreshButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh)
-        self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete)
+        self.connect(addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_staff)
+        self.connect(refreshButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh_staff)
+        self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_staff)
+        self.connect(allStaffButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh_staff)
+        self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_staff)
 
-    def add(self):
-        dialog = Dialog(parent=self)
+class MyTable(QtGui.QTableWidget):
+    def __init__(self,parent=None):
+        super(MyTable,self).__init__(parent)
+
+        head_labels = ['ID', '姓名','工号','手机','出生年月','职称','学历','忙否','正在进行的项目','手里仪器','本月出差天数']
+        self.setColumnCount(len(head_labels))
+        self.setRowCount(0)
+        self.setHorizontalHeaderLabels(head_labels)
+        self.refresh_staff()
+
+    def add_staff(self):
+        dialog = Dialog()
         if dialog.exec_():
             dic = dialog.get_add_datas()
             user = User(name=dic.get('name'),
@@ -56,22 +75,10 @@ class staff_tab(QtGui.QWidget):
                         education=dic.get('education'),
             )
             StaffManager.add_staff(user)
-            self.my_table.refresh()
+            self.refresh_staff()
         dialog.destroy()
 
-
-
-class MyTable(QtGui.QTableWidget):
-    def __init__(self,parent=None):
-        super(MyTable,self).__init__(parent)
-
-        head_labels = ['ID', '姓名','工号','手机','出生年月','职称','学历','忙否','正在进行的项目','手里仪器','本月出差天数']
-        self.setColumnCount(len(head_labels))
-        self.setRowCount(0)
-        self.setHorizontalHeaderLabels(head_labels)
-        self.refresh()
-
-    def refresh(self):
+    def refresh_staff(self):
         search_datas = StaffManager.search_staff()
         if len(search_datas) == 0:
             self.setRowCount(0)
@@ -86,14 +93,44 @@ class MyTable(QtGui.QTableWidget):
                 j = j + 1
             i = i + 1
 
-    def delete(self):
+    def delete_staff(self):
         indexes = self.selectionModel().selectedRows()
-        ids_list = []
-        for index in sorted(indexes):
-            id_text = self.item(index.row(), 0).text()
-            ids_list.append(int(id_text))
-        StaffManager.delete_staff(ids_list)
-        self.refresh()
+        if len(indexes) == 0:
+            ToolsManager.information_box("注意", "请选择一行或多行进行删除!")
+        else:
+            button = ToolsManager.question_box("提醒", "是否删除选中行？")
+            if button == QtGui.QMessageBox.Ok:
+                ids_list = []
+                for index in sorted(indexes):
+                    id_text = self.item(index.row(), 0).text()
+                    ids_list.append(int(id_text))
+                StaffManager.delete_staff(ids_list)
+                self.refresh_staff()
+            else:
+                pass
+
+
+    def update_staff(self):
+        indexes = self.selectionModel().selectedRows()
+        if(len(indexes)) == 1:
+            dialog = Dialog()
+            id_text = self.item(indexes[0].row(), 0).text()
+            staff_item = StaffManager.get_one_item_by_id(int(id_text))
+            dialog.name_edit.setText(staff_item.name)
+            dialog.employee_id_edit.setText(staff_item.employee_id)
+            dialog.phone_number_edit.setText(staff_item.phone_number)
+            #dialog.birth_date_edit.setDateTime()
+            dialog.title_edit.setText(staff_item.title)
+            dialog.education_edit.setText(staff_item.education)
+            if dialog.exec_():
+                dic = dialog.get_add_datas()
+                dic['id'] = int(id_text)
+                StaffManager.updata_staff(dic)
+                self.refresh_staff()
+            dialog.destroy()
+        else:
+            # 弹出警告
+            ToolsManager.information_box("注意", "请选择一行进行更新!")
 
 
 class Dialog(QtGui.QDialog):

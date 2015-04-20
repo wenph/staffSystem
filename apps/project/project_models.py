@@ -12,5 +12,11 @@ class Project(ProjectBase):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    fullname = Column(String)
-    password = Column(String)
+    search_id = Column(String)
+    source_place = Column(String)
+    main_designer = Column(String)
+    design_all = Column(String)
+    responsible_man = Column(String)
+    attendee = Column(String)
+    start_time = Column(String)
+    end_time = Column(String)

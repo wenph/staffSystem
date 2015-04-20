@@ -3,12 +3,18 @@ __author__ = 'admin'
 
 from staff_models import User
 from apps.db.db_session import session
+from apps.utils.tools import ToolsManager
 
 class StaffManager(object):
     @staticmethod
     def add_staff(user_obj):
-        session.add(user_obj)
-        session.commit()
+        items = session.query(User).filter(User.name == user_obj.name).all()
+        if len(items) == 0:     # 数据库中没有重名的存在，则添加
+            session.add(user_obj)
+            session.commit()
+        else:
+            # 弹出警告
+            ToolsManager.information_box("注意", "\"%s\"已经存在数据库中!" % str(user_obj.name))
 
     @staticmethod
     def delete_staff(ids_list):
@@ -35,6 +41,22 @@ class StaffManager(object):
             i = i + 1
         return search_datas
 
+    @staticmethod
+    def updata_staff(dic):
+        item = session.query(User).filter(User.id == dic.get('id')).one()
+        item.name = dic.get('name')
+        item.employee_id=dic.get('employee_id')
+        item.phone_number=dic.get('phone_number')
+        item.birth_date=dic.get('birth_date')
+        item.title=dic.get('title')
+        item.education=dic.get('education')
+        session.add(item)
+        session.commit()
 
-if __name__ == '__main__':
-    StaffManager.search_staff()
+    @staticmethod
+    def get_one_item_by_id(item_id):
+        item = session.query(User).filter(User.id == item_id).one()
+        return item
+
+
+

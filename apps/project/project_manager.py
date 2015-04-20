@@ -1,17 +1,64 @@
 #coding=utf-8
 __author__ = 'admin'
 
+from project_models import Project
+from apps.db.db_session import session
+from apps.utils.tools import ToolsManager
 
 class ProjectManager(object):
     @staticmethod
-    def add_project(obj):
-        pass
+    def add_project(user_obj):
+        items = session.query(Project).filter(Project.name == user_obj.name).all()
+        if len(items) == 0:     # 数据库中没有重名的存在，则添加
+            session.add(user_obj)
+            session.commit()
+        else:
+            # 弹出警告
+            ToolsManager.information_box("注意", "\"%s\"已经存在数据库中!" % str(user_obj.name))
 
     @staticmethod
-    def delete_project():
-        pass
+    def delete_project(ids_list):
+        items = session.query(Project).filter(Project.id.in_(ids_list))
+        for item in items:
+            session.delete(item)
+        session.commit()
 
     @staticmethod
     def search_project():
-        pass
+        search_datas = []
+        i = 0
+        query = session.query(Project).all()
+        for query_meta in query:
+            search_datas.append([])
+            search_datas[i].append(query_meta.id)
+            search_datas[i].append(query_meta.name)
+            search_datas[i].append(query_meta.search_id)
+            search_datas[i].append(query_meta.source_place)
+            search_datas[i].append(query_meta.main_designer)
+            search_datas[i].append(query_meta.design_all)
+            search_datas[i].append(query_meta.responsible_man)
+            search_datas[i].append(query_meta.attendee)
+            search_datas[i].append(query_meta.start_time)
+            search_datas[i].append(query_meta.end_time)
+            i = i + 1
+        return search_datas
 
+    @staticmethod
+    def updata_project(dic):
+        item = session.query(Project).filter(Project.id == dic.get('id')).one()
+        item.name = dic.get('name')
+        item.search_id=dic.get('search_id')
+        item.source_place=dic.get('source_place')
+        item.main_designer=dic.get('main_designer')
+        item.design_all=dic.get('design_all')
+        item.responsible_man=dic.get('responsible_man')
+        item.attendee=dic.get('attendee')
+        item.start_time=dic.get('start_time')
+        item.end_time=dic.get('end_time')
+        session.add(item)
+        session.commit()
+
+    @staticmethod
+    def get_one_item_by_id(item_id):
+        item = session.query(Project).filter(Project.id == item_id).one()
+        return item
