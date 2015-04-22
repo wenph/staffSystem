@@ -62,16 +62,7 @@ class MyTable(QtGui.QTableWidget):
         dialog = Dialog()
         if dialog.exec_():
             dic = dialog.get_add_datas()
-            user = Project(name=dic.get('name'),
-                        search_id=dic.get('search_id'),
-                        source_place=dic.get('source_place'),
-                        main_designer=dic.get('main_designer'),
-                        design_all=dic.get('design_all'),
-                        responsible_man=dic.get('responsible_man'),
-                        attendee=dic.get('attendee'),
-                        start_time=dic.get('start_time'),
-                        end_time=dic.get('end_time'),
-            )
+            user = Project(**dic)
             ProjectManager.add_project(user)
             self.refresh_project()
         dialog.destroy()

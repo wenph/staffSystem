@@ -67,13 +67,7 @@ class MyTable(QtGui.QTableWidget):
         dialog = Dialog()
         if dialog.exec_():
             dic = dialog.get_add_datas()
-            user = User(name=dic.get('name'),
-                        employee_id=dic.get('employee_id'),
-                        phone_number=dic.get('phone_number'),
-                        birth_date=dic.get('birth_date'),
-                        title=dic.get('title'),
-                        education=dic.get('education'),
-            )
+            user = User(**dic)
             StaffManager.add_staff(user)
             self.refresh_staff()
         dialog.destroy()
