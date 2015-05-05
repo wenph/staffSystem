@@ -18,6 +18,20 @@ class staff_tab(QtGui.QWidget):
         refreshButton = QtGui.QPushButton("刷新")
         allStaffButton = QtGui.QPushButton("所有人员")
         idleStaffButton = QtGui.QPushButton("闲置人员")
+        name_label = QtGui.QLabel('姓名')
+        self.name_edit = QtGui.QLineEdit()
+        start_time_label = QtGui.QLabel('起始时间')
+        self.start_time_edit = QtGui.QDateEdit(self)
+        self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
+        self.start_time_edit.setCalendarPopup(True)
+        self.end_time_edit = QtGui.QDateEdit(self)
+        self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
+        self.end_time_edit.setCalendarPopup(True)
+        end_time_label = QtGui.QLabel('终止时间')
+        searchButton = QtGui.QPushButton("搜索")
+
 
         grid = QtGui.QGridLayout()
         grid.addWidget(addButton, 1, 0)
@@ -25,14 +39,25 @@ class staff_tab(QtGui.QWidget):
         grid.addWidget(updateButton, 2, 0)
         grid.addWidget(refreshButton, 2, 1)
 
-        searchHbox = QtGui.QHBoxLayout()
-        searchHbox.addWidget(allStaffButton)
-        searchHbox.addWidget(idleStaffButton)
+        searchVbox = QtGui.QVBoxLayout()
+        searchHbox1 = QtGui.QHBoxLayout()
+        searchHbox1.addWidget(name_label)
+        searchHbox1.addWidget(self.name_edit)
+        searchHbox1.addWidget(start_time_label)
+        searchHbox1.addWidget(self.start_time_edit)
+        searchHbox1.addWidget(end_time_label)
+        searchHbox1.addWidget(self.end_time_edit)
+        searchHbox1.addWidget(searchButton)
+        searchHbox2 = QtGui.QHBoxLayout()
+        searchHbox2.addStretch(1)
+        searchHbox2.addWidget(allStaffButton)
+        searchHbox2.addWidget(idleStaffButton)
+        searchVbox.addLayout(searchHbox1)
+        searchVbox.addLayout(searchHbox2)
 
         editAreaHbox = QtGui.QHBoxLayout()
-        #editAreaHbox.addStretch(1)
         editAreaHbox.addLayout(grid)
-        editAreaHbox.addLayout(searchHbox)
+        editAreaHbox.addLayout(searchVbox)
         editAreaHbox.addStretch(1)
 
         vbox = QtGui.QVBoxLayout()
@@ -52,12 +77,25 @@ class staff_tab(QtGui.QWidget):
         self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_staff)
         self.connect(allStaffButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh_staff)
         self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_staff)
+        self.connect(idleStaffButton, QtCore.SIGNAL('clicked()'), self.my_table.search_staff_project)
+        #self.connect(searchButton, QtCore.SIGNAL('clicked()'), self.my_table.search_staff_by_name_and_date, **{'a':'a'})
+
+        searchButton.clicked.connect(lambda: self.collect_data())
+
+    def collect_data(self):
+        para = {
+            'name': unicode(self.name_edit.text()),
+            'start_time': unicode(self.start_time_edit.text()),
+            'end_time': unicode(self.end_time_edit.text())
+        }
+        self.my_table.search_staff_by_name_and_date(**para)
+
 
 class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(MyTable,self).__init__(parent)
 
-        head_labels = ['ID', '姓名','工号','手机','出生年月','职称','学历','忙否','正在进行的项目','手里仪器','本月出差天数']
+        head_labels = ['ID', '姓名','工号','手机','出生年月','职称','学历','正在进行的项目','手里仪器','本月出差天数','职位']
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
@@ -125,6 +163,18 @@ class MyTable(QtGui.QTableWidget):
         else:
             # 弹出警告
             ToolsManager.information_box("注意", "请选择一行进行更新!")
+
+    def search_staff_project(self):
+        indexes = self.selectionModel().selectedRows()
+        if(len(indexes)) == 1:
+            name_text = unicode(self.item(indexes[0].row(), 1).text())
+            StaffManager.search_staff_project(name_text)
+        else:
+            ToolsManager.information_box("注意", "请选择一行进行搜索!")
+
+    def search_staff_by_name_and_date(self, **kwargs):
+        print kwargs
+
 
 
 class Dialog(QtGui.QDialog):

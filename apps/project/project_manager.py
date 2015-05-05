@@ -15,6 +15,7 @@ class ProjectManager(object):
         else:
             # 弹出警告
             ToolsManager.information_box("注意", "\"%s\"已经存在数据库中!" % str(user_obj.name))
+        return user_obj
 
     @staticmethod
     def delete_project(ids_list):

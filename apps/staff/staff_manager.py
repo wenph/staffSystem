@@ -1,7 +1,7 @@
 #coding=utf-8
 __author__ = 'admin'
 
-from staff_models import User
+from staff_models import User, UserPorject
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
 
@@ -37,7 +37,6 @@ class StaffManager(object):
             search_datas[i].append(query_meta.birth_date)
             search_datas[i].append(query_meta.title)
             search_datas[i].append(query_meta.education)
-            search_datas[i].append(query_meta.is_busy)
             i = i + 1
         return search_datas
 
@@ -58,5 +57,22 @@ class StaffManager(object):
         item = session.query(User).filter(User.id == item_id).one()
         return item
 
+    @staticmethod
+    def get_one_item_by_name(item_name):
+        item = session.query(User).filter(User.name == item_name).one()
+        return item
 
+    @staticmethod
+    def add_staff_project(project_id, attendee_ids_str):
+        attendee_ids_list = attendee_ids_str.split(',')
+        for id in attendee_ids_list:
+            item = UserPorject(user_id=id, project_id=project_id)
+            session.add(item)
+        session.commit()
 
+    @staticmethod
+    def search_staff_project(staff_name):
+        staff_id = StaffManager.get_one_item_by_name(staff_name).id
+        items= session.query(UserPorject).filter(UserPorject.user_id == staff_id)
+        for item in items:
+            print item.user_id, item.project_id

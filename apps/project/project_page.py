@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 from project_models import Project
 from project_manager import ProjectManager
 from apps.utils.tools import ToolsManager
+from apps.staff.staff_manager import StaffManager
 
 
 class project_tab(QtGui.QWidget):
@@ -63,7 +64,8 @@ class MyTable(QtGui.QTableWidget):
         if dialog.exec_():
             dic = dialog.get_add_datas()
             user = Project(**dic)
-            ProjectManager.add_project(user)
+            project = ProjectManager.add_project(user)
+            StaffManager.add_staff_project(project.id, dic['attendee'])
             self.refresh_project()
         dialog.destroy()
 
@@ -140,6 +142,7 @@ class Dialog(QtGui.QDialog):
         attendee_label = QtGui.QLabel('参加人员')
         start_time_label = QtGui.QLabel('开始时间')
         end_time_label = QtGui.QLabel('结束时间')
+        candidate_label = QtGui.QLabel('待选人员')
 
         self.id_edit = QtGui.QLineEdit()
         self.name_edit = QtGui.QLineEdit()
@@ -157,7 +160,6 @@ class Dialog(QtGui.QDialog):
         self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
-
 
         grid = QtGui.QGridLayout()
         #grid.setSpacing(10)
@@ -180,14 +182,44 @@ class Dialog(QtGui.QDialog):
         grid.addWidget(responsible_man_label, 6, 0)
         grid.addWidget(self.responsible_man_edit, 6, 1)
 
-        grid.addWidget(attendee_label, 7, 0)
-        grid.addWidget(self.attendee_edit, 7, 1)
+        #grid.addWidget(attendee_label, 7, 0)
+        #grid.addWidget(self.attendee_edit, 7, 1)
 
         grid.addWidget(start_time_label, 8, 0)
         grid.addWidget(self.start_time_edit, 8, 1)
 
         grid.addWidget(end_time_label, 9, 0)
         grid.addWidget(self.end_time_edit, 9, 1)
+
+        myBoxLayout = QtGui.QHBoxLayout()
+        listWidgetALayout = QtGui.QVBoxLayout()
+        listWidgetBLayout = QtGui.QVBoxLayout()
+
+        self.listWidgetA = QtGui.QListWidget()
+        self.listWidgetB = QtGui.QListWidget()
+        self.addButton = QtGui.QPushButton()
+        self.addButton.setText("-->")
+        self.removeButton = QtGui.QPushButton()
+        self.removeButton.setText("<--")
+
+        buttonLayout = QtGui.QVBoxLayout()
+        buttonLayout.addWidget(self.addButton)
+        buttonLayout.addWidget(self.removeButton)
+        staff_datas = StaffManager.search_staff()
+        for i in range(len(staff_datas)):
+            item = QtGui.QListWidgetItem(staff_datas[i][1])
+            self.listWidgetA.addItem(item)
+
+        listWidgetALayout.addWidget(candidate_label)
+        listWidgetALayout.addWidget(self.listWidgetA)
+        listWidgetBLayout.addWidget(attendee_label)
+        listWidgetBLayout.addWidget(self.listWidgetB)
+        myBoxLayout.addLayout(listWidgetALayout)
+        myBoxLayout.addLayout(buttonLayout)
+        myBoxLayout.addLayout(listWidgetBLayout)
+
+        self.connect(self.addButton, QtCore.SIGNAL('clicked()'), self.add_fun)
+        self.connect(self.removeButton, QtCore.SIGNAL('clicked()'), self.remove_fun)
 
         self.setWindowTitle('添加')
 
@@ -204,6 +236,7 @@ class Dialog(QtGui.QDialog):
 
         # 加入前面创建的表格布局
         layout.addLayout(grid)
+        layout.addLayout(myBoxLayout)
 
         # 放一个间隔对象美化布局
         #spacerItem = QtGui.QSpacerItem(20, 48, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
@@ -223,7 +256,30 @@ class Dialog(QtGui.QDialog):
         datas_dic['main_designer'] = unicode(self.main_designer_edit.text())
         datas_dic['design_all'] = unicode(self.design_all_edit.text())
         datas_dic['responsible_man'] = unicode(self.responsible_man_edit.text())
-        datas_dic['attendee'] = unicode(self.attendee_edit.text())
         datas_dic['start_time'] = unicode(self.start_time_edit.text())
         datas_dic['end_time'] = unicode(self.end_time_edit.text())
+        attendee_ids = ''
+        for row_num in range(self.listWidgetB.count()):
+            row_text = unicode(self.listWidgetB.item(row_num).text())
+            staff_id = StaffManager.get_one_item_by_name(row_text).id
+            attendee_ids += str(staff_id)+","
+        datas_dic['attendee'] = attendee_ids.rstrip(',')
         return datas_dic
+
+    def add_fun(self):
+        if len(self.listWidgetA.selectedItems()) == 1:
+            row_num = self.listWidgetA.row(self.listWidgetA.currentItem())
+            currentItem = self.listWidgetA.item(row_num).text()
+            self.listWidgetB.addItem(currentItem)
+            self.listWidgetA.takeItem(row_num)
+        else:
+            ToolsManager.information_box("注意", "请选择一个待选人员!")
+
+    def remove_fun(self):
+        if len(self.listWidgetB.selectedItems()) == 1:
+            row_num = self.listWidgetB.row(self.listWidgetB.currentItem())
+            currentItem = self.listWidgetB.item(row_num).text()
+            self.listWidgetA.addItem(currentItem)
+            self.listWidgetB.takeItem(row_num)
+        else:
+            ToolsManager.information_box("注意", "请选择一个参加人员!")
