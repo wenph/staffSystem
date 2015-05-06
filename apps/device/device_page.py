@@ -2,7 +2,7 @@
 __author__ = 'admin'
 
 import sys
-from PyQt4 import QtGui, QtCore, QtWebKit
+from PyQt4 import QtGui, QtCore
 
 
 class device_tab(QtGui.QWidget):

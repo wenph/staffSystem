@@ -15,6 +15,6 @@ if not os.path.exists(DB_PATH):
     os.makedirs(DB_PATH)
 
 # 路径一定要存在才行
-engine = create_engine("sqlite:////Users/admin/PycharmProjects/staff_system/staff.db", echo=False)
+# engine = create_engine("sqlite:////Users/admin/PycharmProjects/staff_system/staff.db", echo=False)
 
-#engine = create_engine("sqlite:///%s/staff.db" % DB_PATH, echo=False)
+engine = create_engine("sqlite:///%s/staff.db" % DB_PATH, echo=False)
