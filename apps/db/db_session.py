@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding=cp936
 __author__ = 'admin'
 
 from sqlalchemy.orm import sessionmaker

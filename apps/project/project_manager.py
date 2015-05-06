@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding=cp936
 __author__ = 'admin'
 
 from project_models import Project
@@ -9,12 +9,12 @@ class ProjectManager(object):
     @staticmethod
     def add_project(user_obj):
         items = session.query(Project).filter(Project.name == user_obj.name).all()
-        if len(items) == 0:     # æ•°æ®åº“ä¸­æ²¡æœ‰é‡åçš„å­˜åœ¨ï¼Œåˆ™æ·»åŠ 
+        if len(items) == 0:     # Êı¾İ¿âÖĞÃ»ÓĞÖØÃûµÄ´æÔÚ£¬ÔòÌí¼Ó
             session.add(user_obj)
             session.commit()
         else:
-            # å¼¹å‡ºè­¦å‘Š
-            ToolsManager.information_box("æ³¨æ„", "\"%s\"å·²ç»å­˜åœ¨æ•°æ®åº“ä¸­!" % str(user_obj.name))
+            # µ¯³ö¾¯¸æ
+            ToolsManager.information_box(u"×¢Òâ", u"\"%s\"ÒÑ¾­´æÔÚÊı¾İ¿âÖĞ!" % str(user_obj.name))
         return user_obj
 
     @staticmethod

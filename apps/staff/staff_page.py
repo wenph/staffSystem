@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding=cp936
 __author__ = 'admin'
 
 from PyQt4 import QtGui, QtCore
@@ -11,16 +11,16 @@ class staff_tab(QtGui.QWidget):
     def __init__(self, parent=None):
         super(staff_tab, self).__init__(parent)
 
-        # æŸ¥è¯¢åŒºåŸŸçš„æŒ‰é’®
-        addButton = QtGui.QPushButton("æ·»åŠ ")
-        deleteButton = QtGui.QPushButton("åˆ é™¤")
-        updateButton = QtGui.QPushButton("æ›´æ–°")
-        refreshButton = QtGui.QPushButton("åˆ·æ–°")
-        allStaffButton = QtGui.QPushButton("æ‰€æœ‰äººå‘˜")
-        idleStaffButton = QtGui.QPushButton("é—²ç½®äººå‘˜")
-        name_label = QtGui.QLabel('å§“å')
+        # ²éÑ¯ÇøÓòµÄ°´Å¥
+        addButton = QtGui.QPushButton(u"Ìí¼Ó")
+        deleteButton = QtGui.QPushButton(u"É¾³ı")
+        updateButton = QtGui.QPushButton(u"¸üĞÂ")
+        refreshButton = QtGui.QPushButton(u"Ë¢ĞÂ")
+        allStaffButton = QtGui.QPushButton(u"ËùÓĞÈËÔ±")
+        idleStaffButton = QtGui.QPushButton(u"ÏĞÖÃÈËÔ±")
+        name_label = QtGui.QLabel(u'ĞÕÃû')
         self.name_edit = QtGui.QLineEdit()
-        start_time_label = QtGui.QLabel('èµ·å§‹æ—¶é—´')
+        start_time_label = QtGui.QLabel(u'ÆğÊ¼Ê±¼ä')
         self.start_time_edit = QtGui.QDateEdit(self)
         self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
@@ -29,8 +29,8 @@ class staff_tab(QtGui.QWidget):
         self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
-        end_time_label = QtGui.QLabel('ç»ˆæ­¢æ—¶é—´')
-        searchButton = QtGui.QPushButton("æœç´¢")
+        end_time_label = QtGui.QLabel(u'ÖÕÖ¹Ê±¼ä')
+        searchButton = QtGui.QPushButton(u"ËÑË÷")
 
 
         grid = QtGui.QGridLayout()
@@ -95,7 +95,7 @@ class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(MyTable,self).__init__(parent)
 
-        head_labels = ['ID', 'å§“å','å·¥å·','æ‰‹æœº','å‡ºç”Ÿå¹´æœˆ','èŒç§°','å­¦å†','æ­£åœ¨è¿›è¡Œçš„é¡¹ç›®','æ‰‹é‡Œä»ªå™¨','æœ¬æœˆå‡ºå·®å¤©æ•°','èŒä½']
+        head_labels = [u'ID', u'ĞÕÃû',u'¹¤ºÅ',u'ÊÖ»ú',u'³öÉúÄêÔÂ',u'Ö°³Æ',u'Ñ§Àú',u'ÕıÔÚ½øĞĞµÄÏîÄ¿',u'ÊÖÀïÒÇÆ÷',u'±¾ÔÂ³ö²îÌìÊı',u'Ö°Î»']
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
@@ -128,9 +128,9 @@ class MyTable(QtGui.QTableWidget):
     def delete_staff(self):
         indexes = self.selectionModel().selectedRows()
         if len(indexes) == 0:
-            ToolsManager.information_box("æ³¨æ„", "è¯·é€‰æ‹©ä¸€è¡Œæˆ–å¤šè¡Œè¿›è¡Œåˆ é™¤!")
+            ToolsManager.information_box(u"×¢Òâ", u"ÇëÑ¡ÔñÒ»ĞĞ»ò¶àĞĞ½øĞĞÉ¾³ı!")
         else:
-            button = ToolsManager.question_box("æé†’", "æ˜¯å¦åˆ é™¤é€‰ä¸­è¡Œï¼Ÿ")
+            button = ToolsManager.question_box(u"ÌáĞÑ", u"ÊÇ·ñÉ¾³ıÑ¡ÖĞĞĞ£¿")
             if button == QtGui.QMessageBox.Ok:
                 ids_list = []
                 for index in sorted(indexes):
@@ -161,8 +161,8 @@ class MyTable(QtGui.QTableWidget):
                 self.refresh_staff()
             dialog.destroy()
         else:
-            # å¼¹å‡ºè­¦å‘Š
-            ToolsManager.information_box("æ³¨æ„", "è¯·é€‰æ‹©ä¸€è¡Œè¿›è¡Œæ›´æ–°!")
+            # µ¯³ö¾¯¸æ
+            ToolsManager.information_box(u"×¢Òâ", u"ÇëÑ¡ÔñÒ»ĞĞ½øĞĞ¸üĞÂ!")
 
     def search_staff_project(self):
         indexes = self.selectionModel().selectedRows()
@@ -170,7 +170,7 @@ class MyTable(QtGui.QTableWidget):
             name_text = unicode(self.item(indexes[0].row(), 1).text())
             StaffManager.search_staff_project(name_text)
         else:
-            ToolsManager.information_box("æ³¨æ„", "è¯·é€‰æ‹©ä¸€è¡Œè¿›è¡Œæœç´¢!")
+            ToolsManager.information_box(u"×¢Òâ", u"ÇëÑ¡ÔñÒ»ĞĞ½øĞĞËÑË÷!")
 
     def search_staff_by_name_and_date(self, **kwargs):
         print kwargs
@@ -182,14 +182,14 @@ class Dialog(QtGui.QDialog):
         QtGui.QDialog.__init__(self, parent)
         #self.resize(240, 200)
 
-        id_label = QtGui.QLabel('ID')
-        name_label = QtGui.QLabel('å§“å')
-        employee_id_label = QtGui.QLabel('å·¥å·')
-        phone_number_label = QtGui.QLabel('ç”µè¯')
-        birth_date_label = QtGui.QLabel('å‡ºç”Ÿæ—¥æœŸ')
-        title_label = QtGui.QLabel('èŒç§°')
-        education_label = QtGui.QLabel('å­¦å†')
-        is_busy_label = QtGui.QLabel('å¿™å¦')
+        id_label = QtGui.QLabel(u'ID')
+        name_label = QtGui.QLabel(u'ĞÕÃû')
+        employee_id_label = QtGui.QLabel(u'¹¤ºÅ')
+        phone_number_label = QtGui.QLabel(u'µç»°')
+        birth_date_label = QtGui.QLabel(u'³öÉúÈÕÆÚ')
+        title_label = QtGui.QLabel(u'Ö°³Æ')
+        education_label = QtGui.QLabel(u'Ñ§Àú')
+        is_busy_label = QtGui.QLabel(u'Ã¦·ñ')
 
         self.id_edit = QtGui.QLineEdit()
         self.name_edit = QtGui.QLineEdit()
@@ -225,23 +225,23 @@ class Dialog(QtGui.QDialog):
         grid.addWidget(education_label, 6, 0)
         grid.addWidget(self.education_edit, 6, 1)
 
-        self.setWindowTitle('æ·»åŠ ')
+        self.setWindowTitle(u'Ìí¼Ó')
 
-        # åˆ›å»ºButtonBoxï¼Œç”¨æˆ·ç¡®å®šå’Œå–æ¶ˆ
+        # ´´½¨ButtonBox£¬ÓÃ»§È·¶¨ºÍÈ¡Ïû
         buttonBox = QtGui.QDialogButtonBox()
-        buttonBox.setOrientation(QtCore.Qt.Horizontal) # è®¾ç½®ä¸ºæ°´å¹³æ–¹å‘
-        buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok) # ç¡®å®šå’Œå–æ¶ˆä¸¤ä¸ªæŒ‰é’®
-        # è¿æ¥ä¿¡å·å’Œæ§½
-        buttonBox.accepted.connect(self.accept) # ç¡®å®š
-        buttonBox.rejected.connect(self.reject) # å–æ¶ˆ
+        buttonBox.setOrientation(QtCore.Qt.Horizontal) # ÉèÖÃÎªË®Æ½·½Ïò
+        buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok) # È·¶¨ºÍÈ¡ÏûÁ½¸ö°´Å¥
+        # Á¬½ÓĞÅºÅºÍ²Û
+        buttonBox.accepted.connect(self.accept) # È·¶¨
+        buttonBox.rejected.connect(self.reject) # È¡Ïû
 
-        # å‚ç›´å¸ƒå±€ï¼Œå¸ƒå±€è¡¨æ ¼åŠæŒ‰é’®
+        # ´¹Ö±²¼¾Ö£¬²¼¾Ö±í¸ñ¼°°´Å¥
         layout = QtGui.QVBoxLayout()
 
-        # åŠ å…¥å‰é¢åˆ›å»ºçš„è¡¨æ ¼å¸ƒå±€
+        # ¼ÓÈëÇ°Ãæ´´½¨µÄ±í¸ñ²¼¾Ö
         layout.addLayout(grid)
 
-        # æ”¾ä¸€ä¸ªé—´éš”å¯¹è±¡ç¾åŒ–å¸ƒå±€
+        # ·ÅÒ»¸ö¼ä¸ô¶ÔÏóÃÀ»¯²¼¾Ö
         #spacerItem = QtGui.QSpacerItem(20, 48, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         #layout.addItem(spacerItem)
 

@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding=cp936
 __author__ = 'admin'
 
 from PyQt4 import QtGui
@@ -6,7 +6,7 @@ from PyQt4 import QtGui
 class ToolsManager(object):
     @staticmethod
     def information_box(title, content):
-        # å¼¹å‡ºè­¦å‘Š
+        # µ¯³ö¾¯¸æ
         msgBox = QtGui.QMessageBox()
         msgBox.setIcon(QtGui.QMessageBox.Information)
         msgBox.setText(title)
@@ -17,7 +17,7 @@ class ToolsManager(object):
 
     @staticmethod
     def question_box(title, content):
-        # å¼¹å‡ºå¯¹è¯æ¡†
+        # µ¯³ö¶Ô»°¿ò
         msgBox = QtGui.QMessageBox()
         msgBox.setIcon(QtGui.QMessageBox.Question)
         msgBox.setText(title)

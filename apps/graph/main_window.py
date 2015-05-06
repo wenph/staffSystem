@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding=cp936
 __author__ = 'admin'
 
 import sys
@@ -12,9 +12,9 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.centralWidget = QtGui.QWidget()
         screen = QtGui.QDesktopWidget().screenGeometry()
-        #self.resize(screen.width(), screen.height())            # 绐楀彛鏈�澶у寲
+        #self.resize(screen.width(), screen.height())            # 窗口最大化
         self.resize(800, 500)
-        self.setWindowTitle('浜哄憳椤圭洰绠＄悊绯荤粺')
+        self.setWindowTitle(u'人员项目管理系统')
         self.statusBar().showMessage('Ready')
 
         vbox = QtGui.QVBoxLayout()
@@ -27,9 +27,9 @@ class MainWindow(QtGui.QMainWindow):
         qwidget1 = staff_tab()
         qwidget2 = project_tab()
         qwidget3 = device_tab()
-        self.tabs_widget.addTab(qwidget1, "浜哄憳绠＄悊")
-        self.tabs_widget.addTab(qwidget2, "宸ョ▼绠＄悊")
-        self.tabs_widget.addTab(qwidget3, "浠櫒绠＄悊")
+        self.tabs_widget.addTab(qwidget1, u"人员管理")
+        self.tabs_widget.addTab(qwidget2, u"工程管理")
+        self.tabs_widget.addTab(qwidget3, u"仪器管理")
 
         #qwidget1.
         self.centralWidget.setLayout(vbox)
