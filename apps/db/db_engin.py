@@ -4,8 +4,7 @@ __author__ = 'admin'
 from sqlalchemy import create_engine
 import platform
 import os
-from apps.project.project_models import ProjectBase
-from apps.staff.staff_models import UserBase, UserPorject
+from db_models import Base
 
 DB_NAME = "staff.db"
 
@@ -23,6 +22,4 @@ if not os.path.exists(DB_PATH):
 engine = create_engine("sqlite:///%s/staff.db" % DB_PATH, echo=False)
 # 如果表不存在，则创建表
 if not os.path.exists(DB_FILE_PATH):
-    UserBase.metadata.create_all(engine)
-    ProjectBase.metadata.create_all(engine)
-    UserPorject.metadata.create_all(engine)
+    Base.metadata.create_all(engine)

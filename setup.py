@@ -3,7 +3,7 @@ import py2exe
 
 script = [
     {
-        "script": "apps/graph/main_window.py"
+        "script": "apps/main_window.py"
     }
 ]
 

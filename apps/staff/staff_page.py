@@ -2,9 +2,10 @@
 __author__ = 'admin'
 
 from PyQt4 import QtGui, QtCore
-from staff_models import User
+from apps.db.db_models import User
 from staff_manager import StaffManager
 from apps.utils.tools import ToolsManager
+from apps.utils import constant
 
 
 class staff_tab(QtGui.QWidget):
@@ -95,7 +96,7 @@ class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(MyTable,self).__init__(parent)
 
-        head_labels = [u'ID', u'姓名',u'工号',u'手机',u'出生年月',u'职称',u'学历',u'正在进行的项目',u'手里仪器',u'本月出差天数',u'职位']
+        head_labels = constant.STAFF_COLUMN
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
@@ -106,6 +107,7 @@ class MyTable(QtGui.QTableWidget):
         if dialog.exec_():
             dic = dialog.get_add_datas()
             user = User(**dic)
+            ToolsManager.validate_data('staff', dic)
             StaffManager.add_staff(user)
             self.refresh_staff()
         dialog.destroy()
@@ -122,8 +124,8 @@ class MyTable(QtGui.QTableWidget):
             for meta in datas_meta:
                 newItem = QtGui.QTableWidgetItem(unicode(meta))
                 self.setItem(i,j,newItem)
-                j = j + 1
-            i = i + 1
+                j += 1
+            i += 1
 
     def delete_staff(self):
         indexes = self.selectionModel().selectedRows()
@@ -137,6 +139,7 @@ class MyTable(QtGui.QTableWidget):
                     id_text = self.item(index.row(), 0).text()
                     ids_list.append(int(id_text))
                 StaffManager.delete_staff(ids_list)
+                StaffManager.delete_staff_project_by_staff_ids(ids_list)
                 self.refresh_staff()
             else:
                 pass
@@ -185,7 +188,8 @@ class Dialog(QtGui.QDialog):
         id_label = QtGui.QLabel(u'ID')
         name_label = QtGui.QLabel(u'姓名')
         employee_id_label = QtGui.QLabel(u'工号')
-        phone_number_label = QtGui.QLabel(u'电话')
+        phone_number_label = QtGui.QLabel(u'手机')
+        tel_number_label = QtGui.QLabel(u'电话')
         birth_date_label = QtGui.QLabel(u'出生日期')
         title_label = QtGui.QLabel(u'职称')
         education_label = QtGui.QLabel(u'学历')
@@ -195,12 +199,17 @@ class Dialog(QtGui.QDialog):
         self.name_edit = QtGui.QLineEdit()
         self.employee_id_edit = QtGui.QLineEdit()
         self.phone_number_edit = QtGui.QLineEdit()
+        self.tel_number_edit = QtGui.QLineEdit()
         self.birth_date_edit = QtGui.QDateEdit(self)
         self.birth_date_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.birth_date_edit.setDisplayFormat("yyyy-MM-dd")
         self.birth_date_edit.setCalendarPopup(True)
-        self.title_edit = QtGui.QLineEdit()
-        self.education_edit = QtGui.QLineEdit()
+        self.title_edit = QtGui.QComboBox()
+        for title in constant.TITLE_NAME_LIST:
+            self.title_edit.addItem(title)
+        self.education_edit = QtGui.QComboBox()
+        for education in constant.EDUCATION_NAME_LIST:
+            self.education_edit.addItem(education)
         self.is_busy_edit = QtGui.QLineEdit()
 
 
@@ -216,14 +225,17 @@ class Dialog(QtGui.QDialog):
         grid.addWidget(phone_number_label, 3, 0)
         grid.addWidget(self.phone_number_edit, 3, 1)
 
-        grid.addWidget(birth_date_label, 4, 0)
-        grid.addWidget(self.birth_date_edit, 4, 1)
+        grid.addWidget(tel_number_label, 4, 0)
+        grid.addWidget(self.tel_number_edit, 4, 1)
 
-        grid.addWidget(title_label, 5, 0)
-        grid.addWidget(self.title_edit, 5, 1)
+        grid.addWidget(birth_date_label, 5, 0)
+        grid.addWidget(self.birth_date_edit, 5, 1)
 
-        grid.addWidget(education_label, 6, 0)
-        grid.addWidget(self.education_edit, 6, 1)
+        grid.addWidget(title_label, 6, 0)
+        grid.addWidget(self.title_edit, 6, 1)
+
+        grid.addWidget(education_label, 7, 0)
+        grid.addWidget(self.education_edit, 7, 1)
 
         self.setWindowTitle(u'添加')
 
@@ -256,6 +268,7 @@ class Dialog(QtGui.QDialog):
         datas_dic['name'] = unicode(self.name_edit.text())
         datas_dic['employee_id'] = unicode(self.employee_id_edit.text())
         datas_dic['phone_number'] = unicode(self.phone_number_edit.text())
+        datas_dic['tel_number'] = unicode(self.tel_number_edit.text())
         datas_dic['birth_date'] = unicode(self.birth_date_edit.text())
         datas_dic['title'] = unicode(self.title_edit.text())
         datas_dic['education'] = unicode(self.education_edit.text())

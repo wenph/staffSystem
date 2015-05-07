@@ -1,11 +1,13 @@
 #coding=cp936
 __author__ = 'admin'
 
+import copy
 from PyQt4 import QtGui, QtCore
-from project_models import Project
+from apps.db.db_models import Project
 from project_manager import ProjectManager
 from apps.utils.tools import ToolsManager
 from apps.staff.staff_manager import StaffManager
+from apps.utils import constant
 
 
 class project_tab(QtGui.QWidget):
@@ -53,7 +55,7 @@ class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(MyTable,self).__init__(parent)
 
-        head_labels = [u'ID', u'工程名称',u'检索号',u'来源',u'主设人',u'设总',u'负责主工',u'参加人员',u'开始时间',u'结束时间',u'工程所用仪器']
+        head_labels = constant.PROJECT_COLUMN
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
@@ -63,9 +65,11 @@ class MyTable(QtGui.QTableWidget):
         dialog = Dialog()
         if dialog.exec_():
             dic = dialog.get_add_datas()
+            attendee_ids = copy.deepcopy(dic['attendee_ids'])
+            del dic['attendee_ids']
             user = Project(**dic)
             project = ProjectManager.add_project(user)
-            StaffManager.add_staff_project(project.id, dic['attendee'])
+            StaffManager.add_staff_project(project.id, attendee_ids)
             self.refresh_project()
         dialog.destroy()
 
@@ -81,8 +85,8 @@ class MyTable(QtGui.QTableWidget):
             for meta in datas_meta:
                 newItem = QtGui.QTableWidgetItem(unicode(meta))
                 self.setItem(i,j,newItem)
-                j = j + 1
-            i = i + 1
+                j += 1
+            i += 1
 
     def delete_project(self):
         indexes = self.selectionModel().selectedRows()
@@ -96,6 +100,7 @@ class MyTable(QtGui.QTableWidget):
                     id_text = self.item(index.row(), 0).text()
                     ids_list.append(int(id_text))
                 ProjectManager.delete_project(ids_list)
+                StaffManager.delete_staff_project_by_project_ids(ids_list)
                 self.refresh_project()
             else:
                 pass
@@ -259,11 +264,17 @@ class Dialog(QtGui.QDialog):
         datas_dic['start_time'] = unicode(self.start_time_edit.text())
         datas_dic['end_time'] = unicode(self.end_time_edit.text())
         attendee_ids = ''
+        attendee_names = ''
         for row_num in range(self.listWidgetB.count()):
             row_text = unicode(self.listWidgetB.item(row_num).text())
-            staff_id = StaffManager.get_one_item_by_name(row_text).id
-            attendee_ids += str(staff_id)+","
-        datas_dic['attendee'] = attendee_ids.rstrip(',')
+            staff = StaffManager.get_one_item_by_name(row_text)
+            staff_id = staff.id
+            staff_name = staff.name
+            attendee_ids += str(staff_id) + ","
+            attendee_names += staff_name + ","
+
+        datas_dic['attendee_ids'] = attendee_ids.rstrip(',')
+        datas_dic['attendee'] = attendee_names.rstrip(',')
         return datas_dic
 
     def add_fun(self):

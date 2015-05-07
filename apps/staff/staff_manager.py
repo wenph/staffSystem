@@ -1,9 +1,10 @@
 #coding=cp936
 __author__ = 'admin'
 
-from staff_models import User, UserPorject
+from apps.db.db_models import User, UserProject
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
+from sqlalchemy import and_, or_
 
 class StaffManager(object):
     @staticmethod
@@ -18,9 +19,7 @@ class StaffManager(object):
 
     @staticmethod
     def delete_staff(ids_list):
-        items = session.query(User).filter(User.id.in_(ids_list))
-        for item in items:
-            session.delete(item)
+        session.query(User).filter(User.id.in_(ids_list)).delete(synchronize_session=False)
         session.commit()
 
     @staticmethod
@@ -64,15 +63,30 @@ class StaffManager(object):
 
     @staticmethod
     def add_staff_project(project_id, attendee_ids_str):
-        attendee_ids_list = attendee_ids_str.split(',')
-        for id in attendee_ids_list:
-            item = UserPorject(user_id=id, project_id=project_id)
-            session.add(item)
+        if attendee_ids_str != '':
+            attendee_ids_list = attendee_ids_str.split(',')
+            for id in attendee_ids_list:
+                item = UserProject(user_id=id, project_id=project_id)
+                session.add(item)
+            session.commit()
+
+    @staticmethod
+    def delete_staff_project_by_project_ids(project_ids):
+        session.query(UserProject).filter(UserProject.project_id.in_(project_ids)).delete(synchronize_session=False)
         session.commit()
+
+    @staticmethod
+    def delete_staff_project_by_staff_ids(user_ids):
+        session.query(UserProject).filter(UserProject.user_id.in_(user_ids)).delete(synchronize_session=False)
+        session.commit()
+
+    @staticmethod
+    def delete_staff_project_by_staff_project_id(user_id, project_id):
+        session.query(UserProject).filter(and_(UserProject.user_id == user_id, UserProject.project_id == project_id)).delete()
 
     @staticmethod
     def search_staff_project(staff_name):
         staff_id = StaffManager.get_one_item_by_name(staff_name).id
-        items= session.query(UserPorject).filter(UserPorject.user_id == staff_id)
+        items= session.query(UserProject).filter(UserProject.user_id == staff_id).all()
         for item in items:
             print item.user_id, item.project_id
