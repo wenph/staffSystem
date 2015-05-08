@@ -4,7 +4,7 @@ __author__ = 'admin'
 from apps.db.db_models import User, UserProject
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, except_
 
 class StaffManager(object):
     @staticmethod
@@ -24,20 +24,27 @@ class StaffManager(object):
 
     @staticmethod
     def search_staff():
+        query = StaffManager.get_all_staff()
         search_datas = []
         i = 0
-        query = session.query(User).all()
         for query_meta in query:
             search_datas.append([])
             search_datas[i].append(query_meta.id)
             search_datas[i].append(query_meta.name)
             search_datas[i].append(query_meta.employee_id)
             search_datas[i].append(query_meta.phone_number)
+            search_datas[i].append(query_meta.tel_number)
             search_datas[i].append(query_meta.birth_date)
             search_datas[i].append(query_meta.title)
+            search_datas[i].append(query_meta.position)
             search_datas[i].append(query_meta.education)
-            i = i + 1
+            i += 1
         return search_datas
+
+    @staticmethod
+    def get_all_staff():
+        query = session.query(User).all()
+        return query
 
     @staticmethod
     def updata_staff(dic):
@@ -85,8 +92,20 @@ class StaffManager(object):
         session.query(UserProject).filter(and_(UserProject.user_id == user_id, UserProject.project_id == project_id)).delete()
 
     @staticmethod
-    def search_staff_project(staff_name):
-        staff_id = StaffManager.get_one_item_by_name(staff_name).id
-        items= session.query(UserProject).filter(UserProject.user_id == staff_id).all()
-        for item in items:
-            print item.user_id, item.project_id
+    def search_staff_project_by_staff_name_and_data(**kwargs):
+        search_datas = []
+        i = 0
+        staff_id = StaffManager.get_one_item_by_name(kwargs.get('name')).id
+        query = session.query(UserProject).filter(UserProject.user_id == staff_id).all()
+            # filter(except_(UserProject.project.start_time > kwargs.get('end_time'))).\
+            # filter(except_(UserProject.project.end_time < kwargs.get('start_time'))).all()
+        for query_meta in query:
+            search_datas.append([])
+            search_datas[i].append(query_meta.id)
+            search_datas[i].append(query_meta.user.name)
+            search_datas[i].append(query_meta.project.name)
+            search_datas[i].append(query_meta.project.start_time)
+            search_datas[i].append(query_meta.project.end_time)
+            search_datas[i].append(query_meta.project.attendee)
+            i += 1
+        return search_datas

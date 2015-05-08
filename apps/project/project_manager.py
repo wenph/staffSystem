@@ -25,9 +25,9 @@ class ProjectManager(object):
 
     @staticmethod
     def search_project():
+        query = ProjectManager.get_all_project()
         search_datas = []
         i = 0
-        query = session.query(Project).all()
         for query_meta in query:
             search_datas.append([])
             search_datas[i].append(query_meta.id)
@@ -37,11 +37,16 @@ class ProjectManager(object):
             search_datas[i].append(query_meta.main_designer)
             search_datas[i].append(query_meta.design_all)
             search_datas[i].append(query_meta.responsible_man)
-            search_datas[i].append(query_meta.attendee)
             search_datas[i].append(query_meta.start_time)
             search_datas[i].append(query_meta.end_time)
+            search_datas[i].append(query_meta.attendee)
             i = i + 1
         return search_datas
+
+    @staticmethod
+    def get_all_project():
+        query = session.query(Project).all()
+        return query
 
     @staticmethod
     def updata_project(dic):

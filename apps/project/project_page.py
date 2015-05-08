@@ -15,24 +15,44 @@ class project_tab(QtGui.QWidget):
         super(project_tab, self).__init__(parent)
 
         # 查询区域的按钮
-        addButton = QtGui.QPushButton(u"添加")
-        deleteButton = QtGui.QPushButton(u"删除")
-        updateButton = QtGui.QPushButton(u"更新")
-        refreshButton = QtGui.QPushButton(u"刷新")
+        addButton = QtGui.QPushButton(u"添加项目")
+        deleteButton = QtGui.QPushButton(u"删除项目")
+        updateButton = QtGui.QPushButton(u"更新项目")
+        name_label = QtGui.QLabel(u'项目名称')
+        self.name_edit = QtGui.QLineEdit()
+        name_list = [unicode(query.name) for query in ProjectManager.get_all_project()]
+        name_str = QtCore.QStringList(name_list)             #预先设置字典
+        self.name_edit.setCompleter(QtGui.QCompleter(name_str))          # 将字典添加到lineEdit中
+        start_time_label = QtGui.QLabel(u'起始时间')
+        self.start_time_edit = QtGui.QDateEdit(self)
+        self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
+        self.start_time_edit.setCalendarPopup(True)
+        self.end_time_edit = QtGui.QDateEdit(self)
+        self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
+        self.end_time_edit.setCalendarPopup(True)
+        end_time_label = QtGui.QLabel(u'终止时间')
+        searchButton = QtGui.QPushButton(u"搜索")
 
-        grid = QtGui.QGridLayout()
-        grid.addWidget(addButton, 1, 0)
-        grid.addWidget(deleteButton, 1, 1)
-        grid.addWidget(updateButton, 2, 0)
-        grid.addWidget(refreshButton, 2, 1)
-
-        searchHbox = QtGui.QHBoxLayout()
+        searchVbox = QtGui.QVBoxLayout()
+        searchHbox1 = QtGui.QHBoxLayout()
+        searchHbox1.addWidget(name_label)
+        searchHbox1.addWidget(self.name_edit)
+        searchHbox1.addWidget(start_time_label)
+        searchHbox1.addWidget(self.start_time_edit)
+        searchHbox1.addWidget(end_time_label)
+        searchHbox1.addWidget(self.end_time_edit)
+        searchHbox1.addWidget(searchButton)
+        searchHbox1.addStretch(1)
+        searchHbox1.addWidget(addButton)
+        searchHbox1.addWidget(deleteButton)
+        searchHbox1.addWidget(updateButton)
+        searchVbox.addLayout(searchHbox1)
 
         editAreaHbox = QtGui.QHBoxLayout()
-        #editAreaHbox.addStretch(1)
-        editAreaHbox.addLayout(grid)
-        editAreaHbox.addLayout(searchHbox)
-        editAreaHbox.addStretch(1)
+        editAreaHbox.addLayout(searchVbox)
+        # editAreaHbox.addStretch(1)
 
         vbox = QtGui.QVBoxLayout()
         self.my_table = MyTable()
@@ -47,7 +67,6 @@ class project_tab(QtGui.QWidget):
 
         self.setWindowTitle('box layout')
         self.connect(addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_project)
-        self.connect(refreshButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh_project)
         self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_project)
         self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_project)
 
@@ -157,12 +176,12 @@ class Dialog(QtGui.QDialog):
         self.design_all_edit = QtGui.QLineEdit()
         self.responsible_man_edit = QtGui.QLineEdit()
         self.attendee_edit = QtGui.QLineEdit()
-        self.start_time_edit = QtGui.QDateEdit(self)
-        self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.start_time_edit = QtGui.QDateEdit()
+        self.start_time_edit.setDate(QtCore.QDate.currentDate())
         self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.start_time_edit.setCalendarPopup(True)
-        self.end_time_edit = QtGui.QDateEdit(self)
-        self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
+        self.end_time_edit = QtGui.QDateEdit()
+        self.end_time_edit.setDate(QtCore.QDate.currentDate())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
 
@@ -261,8 +280,8 @@ class Dialog(QtGui.QDialog):
         datas_dic['main_designer'] = unicode(self.main_designer_edit.text())
         datas_dic['design_all'] = unicode(self.design_all_edit.text())
         datas_dic['responsible_man'] = unicode(self.responsible_man_edit.text())
-        datas_dic['start_time'] = unicode(self.start_time_edit.text())
-        datas_dic['end_time'] = unicode(self.end_time_edit.text())
+        datas_dic['start_time'] = self.start_time_edit.date().toPyDate()
+        datas_dic['end_time'] = self.end_time_edit.date().toPyDate()
         attendee_ids = ''
         attendee_names = ''
         for row_num in range(self.listWidgetB.count()):

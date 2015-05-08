@@ -28,28 +28,38 @@ class ToolsManager(object):
         return msgBox.exec_()
 
     @staticmethod
-    def validate_data(obj, kwargs_dic):
-        if obj == 'staff':
-            ToolsManager.validate_data_not_null(u'姓名', kwargs_dic.get('name'))
-            ToolsManager.validate_data_not_null(u'工号', kwargs_dic.get('employee_id'))
-            ToolsManager.validate_data_not_null(u'手机', kwargs_dic.get('phone_number'))
-            ToolsManager.validate_data_is_number(u'手机', kwargs_dic.get('phone_number'))
-            ToolsManager.validate_data_not_null(u'电话', kwargs_dic.get('name'))
-            ToolsManager.validate_data_not_null(u'出生日期', kwargs_dic.get('birth_date'))
-            ToolsManager.validate_data_not_null(u'职称', kwargs_dic.get('title'))
-            ToolsManager.validate_data_not_null(u'学历', kwargs_dic.get('education'))
-            return False
-        elif obj == 'project':
+    def validate_data(which, obj, kwargs_dic):
+        result = True
+        if which == 'staff':
+            obj.is_name_correct_label.setVisible(False)
+            obj.is_employee_id_correct_label.setVisible(False)
+            obj.is_phone_number_correct_label.setVisible(False)
+            obj.is_tel_number_correct_label.setVisible(False)
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('name')):
+                obj.is_name_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('employee_id')):
+                obj.is_employee_id_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('phone_number')):
+                obj.is_phone_number_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_not_number(kwargs_dic.get('phone_number')):
+                obj.is_phone_number_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('tel_number')):
+                obj.is_tel_number_correct_label.setVisible(True)
+                result = False
+        elif which == 'project':
             pass
+        return result
 
     @staticmethod
-    def validate_data_not_null(name, value):
-        content = u'请输入正确的%s！' % name
+    def validate_data_is_null(value):
         if value in (None, ''):
-            ToolsManager.information_box(u'注意！', content)
+            return True
 
     @staticmethod
-    def validate_data_is_number(name, value):
-        content = u'请输入正确的%s！' % name
+    def validate_data_is_not_number(value):
         if not re.match("^[0-9]+$", value):
-            ToolsManager.information_box(u'注意！', content)
+            return True

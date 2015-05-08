@@ -2,7 +2,7 @@
 __author__ = 'admin'
 
 
-from sqlalchemy import Table, MetaData, Column, ForeignKey, Integer, String, Unicode, DateTime, create_engine
+from sqlalchemy import Table, MetaData, Column, ForeignKey, Integer, String, Unicode, Date, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 
@@ -16,7 +16,7 @@ class User(Base):
     employee_id = Column(String)
     phone_number = Column(String)
     tel_number = Column(String)
-    birth_date = Column(String)
+    birth_date = Column(Date)
     title = Column(String)
     position = Column(String)
     education = Column(String)
@@ -32,8 +32,8 @@ class Project(Base):
     main_designer = Column(String)
     design_all = Column(String)
     responsible_man = Column(String)
-    start_time = Column(String)
-    end_time = Column(String)
+    start_time = Column(Date)
+    end_time = Column(Date)
     attendee = Column(String)
     userproject = relationship('UserProject')
 
@@ -44,5 +44,5 @@ class UserProject(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
-    #user = relationship("users", backref="users_projects")
-    #project = relationship("projects", backref="users_projects")
+    user = relationship("User", backref=backref("users_projects", order_by=id))
+    project = relationship("Project", backref=backref("users_projects", order_by=id))
