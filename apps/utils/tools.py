@@ -38,17 +38,18 @@ class ToolsManager(object):
             ToolsManager.validate_data_not_null(u'出生日期', kwargs_dic.get('birth_date'))
             ToolsManager.validate_data_not_null(u'职称', kwargs_dic.get('title'))
             ToolsManager.validate_data_not_null(u'学历', kwargs_dic.get('education'))
+            return False
         elif obj == 'project':
             pass
 
     @staticmethod
     def validate_data_not_null(name, value):
-        content = u'请输入正确的%s值！' % name
+        content = u'请输入正确的%s！' % name
         if value in (None, ''):
             ToolsManager.information_box(u'注意！', content)
 
     @staticmethod
     def validate_data_is_number(name, value):
-        content = u'请输入正确的%s值！' % name
+        content = u'请输入正确的%s！' % name
         if not re.match("^[0-9]+$", value):
             ToolsManager.information_box(u'注意！', content)

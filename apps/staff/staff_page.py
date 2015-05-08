@@ -107,10 +107,11 @@ class MyTable(QtGui.QTableWidget):
         if dialog.exec_():
             dic = dialog.get_add_datas()
             user = User(**dic)
-            ToolsManager.validate_data('staff', dic)
-            StaffManager.add_staff(user)
-            self.refresh_staff()
-        dialog.destroy()
+            success = ToolsManager.validate_data('staff', dic)
+            if success:
+                StaffManager.add_staff(user)
+                self.refresh_staff()
+                dialog.destroy()
 
     def refresh_staff(self):
         search_datas = StaffManager.search_staff()
@@ -270,6 +271,6 @@ class Dialog(QtGui.QDialog):
         datas_dic['phone_number'] = unicode(self.phone_number_edit.text())
         datas_dic['tel_number'] = unicode(self.tel_number_edit.text())
         datas_dic['birth_date'] = unicode(self.birth_date_edit.text())
-        datas_dic['title'] = unicode(self.title_edit.text())
-        datas_dic['education'] = unicode(self.education_edit.text())
+        datas_dic['title'] = unicode(self.title_edit.currentText())
+        datas_dic['education'] = unicode(self.education_edit.currentText())
         return datas_dic
