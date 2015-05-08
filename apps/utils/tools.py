@@ -51,7 +51,26 @@ class ToolsManager(object):
                 obj.is_tel_number_correct_label.setVisible(True)
                 result = False
         elif which == 'project':
-            pass
+            obj.is_name_correct_label.setVisible(False)
+            obj.is_search_id_correct_label.setVisible(False)
+            obj.is_main_designer_correct_label.setVisible(False)
+            obj.is_design_all_correct_label.setVisible(False)
+            obj.is_responsible_man_correct_label.setVisible(False)
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('name')):
+                obj.is_name_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('search_id')):
+                obj.is_search_id_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('main_designer')):
+                obj.is_main_designer_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_not_number(kwargs_dic.get('design_all')):
+                obj.is_design_all_correct_label.setVisible(True)
+                result = False
+            if ToolsManager.validate_data_is_null(kwargs_dic.get('responsible_man')):
+                obj.is_responsible_man_correct_label.setVisible(True)
+                result = False
         return result
 
     @staticmethod

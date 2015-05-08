@@ -26,7 +26,6 @@ STAFF_COLUMN = [
 ]
 # 员工搜索列名
 STAFF_SEARCH_COLUMN = [
-    u'ID',
     u'姓名',
     u'项目',
     u'开始时间',

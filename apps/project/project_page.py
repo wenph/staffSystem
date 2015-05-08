@@ -23,7 +23,7 @@ class project_tab(QtGui.QWidget):
         name_list = [unicode(query.name) for query in ProjectManager.get_all_project()]
         name_str = QtCore.QStringList(name_list)             #预先设置字典
         self.name_edit.setCompleter(QtGui.QCompleter(name_str))          # 将字典添加到lineEdit中
-        start_time_label = QtGui.QLabel(u'起始时间')
+        start_time_label = QtGui.QLabel(u'起始日期')
         self.start_time_edit = QtGui.QDateEdit(self)
         self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
@@ -32,18 +32,20 @@ class project_tab(QtGui.QWidget):
         self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
-        end_time_label = QtGui.QLabel(u'终止时间')
-        searchButton = QtGui.QPushButton(u"搜索")
+        end_time_label = QtGui.QLabel(u'终止日期')
+        searchNameButton = QtGui.QPushButton(u"按名称搜索")
+        searchDateButton = QtGui.QPushButton(u"按日期搜索")
 
         searchVbox = QtGui.QVBoxLayout()
         searchHbox1 = QtGui.QHBoxLayout()
         searchHbox1.addWidget(name_label)
         searchHbox1.addWidget(self.name_edit)
+        searchHbox1.addWidget(searchNameButton)
         searchHbox1.addWidget(start_time_label)
         searchHbox1.addWidget(self.start_time_edit)
         searchHbox1.addWidget(end_time_label)
         searchHbox1.addWidget(self.end_time_edit)
-        searchHbox1.addWidget(searchButton)
+        searchHbox1.addWidget(searchDateButton)
         searchHbox1.addStretch(1)
         searchHbox1.addWidget(addButton)
         searchHbox1.addWidget(deleteButton)
@@ -61,14 +63,32 @@ class project_tab(QtGui.QWidget):
         vbox.addLayout(editAreaHbox)
         vbox.addWidget(self.my_table)
 
-
-
         self.setLayout(vbox)
 
         self.setWindowTitle('box layout')
         self.connect(addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_project)
         self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_project)
         self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_project)
+        self.connect(searchNameButton, QtCore.SIGNAL('clicked()'), self.search_project_by_name)
+        self.connect(searchDateButton, QtCore.SIGNAL('clicked()'), self.search_project_by_date)
+
+    def search_project_by_name(self):
+        project_name = unicode(self.name_edit.text())
+        if project_name not in (None, ''):
+            pass
+        else:
+            ToolsManager.information_box(u'注意', u'请填写项目名再搜索！')
+
+    def search_project_by_date(self):
+        para = {
+            'start_time': self.start_time_edit.date().toPyDate(),
+            'end_time': self.end_time_edit.date().toPyDate()
+        }
+        if para['end_time'] < para['start_time']:
+            ToolsManager.information_box(u'注意', u'起始日期应该小于终止日期！')
+        else:
+            pass
+
 
 class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
@@ -82,15 +102,18 @@ class MyTable(QtGui.QTableWidget):
 
     def add_project(self):
         dialog = Dialog()
+        staff_datas = StaffManager.get_all_staff()
+        for staff in staff_datas:
+            dialog.listWidgetA.addItem(QtGui.QListWidgetItem(staff.name))
         if dialog.exec_():
             dic = dialog.get_add_datas()
             attendee_ids = copy.deepcopy(dic['attendee_ids'])
             del dic['attendee_ids']
-            user = Project(**dic)
-            project = ProjectManager.add_project(user)
+            project = Project(**dic)
+            project = ProjectManager.add_project(project)
             StaffManager.add_staff_project(project.id, attendee_ids)
             self.refresh_project()
-        dialog.destroy()
+            dialog.destroy()
 
     def refresh_project(self):
         search_datas = ProjectManager.search_project()
@@ -134,18 +157,27 @@ class MyTable(QtGui.QTableWidget):
 
             dialog.name_edit.setText(project_item.name)
             dialog.search_id_edit.setText(project_item.search_id)
-            dialog.source_place_edit.setText(project_item.source_place)
+            dialog.source_place_edit.setCurrentIndex(dialog.source_place_edit.findText(project_item.source_place))
             dialog.main_designer_edit.setText(project_item.main_designer)
             dialog.design_all_edit.setText(project_item.design_all)
             dialog.responsible_man_edit.setText(project_item.responsible_man)
-            dialog.attendee_edit.setText(project_item.attendee)
+            dialog.start_time_edit.setDate(project_item.start_time)
+            dialog.end_time_edit.setDate(project_item.end_time)
+            if project_item.attendee not in (None, ''):
+                staff_name_list = project_item.attendee.split(',')
+                for staff_name in staff_name_list:
+                    dialog.listWidgetB.addItem(staff_name)
+                staff_datas = StaffManager.get_all_staff()
+                for staff in staff_datas:
+                    if staff.name not in staff_name_list:
+                        dialog.listWidgetA.addItem(staff.name)
 
             if dialog.exec_():
                 dic = dialog.get_add_datas()
                 dic['id'] = int(id_text)
                 ProjectManager.updata_project(dic)
                 self.refresh_project()
-            dialog.destroy()
+                dialog.destroy()
         else:
             # 弹出警告
             ToolsManager.information_box(u"注意", u"请选择一行进行更新!")
@@ -158,20 +190,32 @@ class Dialog(QtGui.QDialog):
 
         id_label = QtGui.QLabel(u'ID')
         name_label = QtGui.QLabel(u'工程名称')
+        self.is_name_correct_label = QtGui.QLabel(u'请填写正确的工程名称！')
+        self.is_name_correct_label.setVisible(False)
         search_id_label = QtGui.QLabel(u'检索号')
+        self.is_search_id_correct_label = QtGui.QLabel(u'请填写正确的检索号！')
+        self.is_search_id_correct_label.setVisible(False)
         source_place_label = QtGui.QLabel(u'来源')
         main_designer_label = QtGui.QLabel(u'主设人')
+        self.is_main_designer_correct_label = QtGui.QLabel(u'请填写正确的主设人！')
+        self.is_main_designer_correct_label.setVisible(False)
         design_all_label = QtGui.QLabel(u'设总')
+        self.is_design_all_correct_label = QtGui.QLabel(u'请填写正确的设总！')
+        self.is_design_all_correct_label.setVisible(False)
         responsible_man_label = QtGui.QLabel(u'负责主工')
-        attendee_label = QtGui.QLabel(u'参加人员')
+        self.is_responsible_man_correct_label = QtGui.QLabel(u'请填写正确的负责主工！')
+        self.is_responsible_man_correct_label.setVisible(False)
         start_time_label = QtGui.QLabel(u'开始时间')
         end_time_label = QtGui.QLabel(u'结束时间')
         candidate_label = QtGui.QLabel(u'待选人员')
+        attendee_label = QtGui.QLabel(u'参加人员')
 
         self.id_edit = QtGui.QLineEdit()
         self.name_edit = QtGui.QLineEdit()
         self.search_id_edit = QtGui.QLineEdit()
-        self.source_place_edit = QtGui.QLineEdit()
+        self.source_place_edit = QtGui.QComboBox()
+        for source_place in constant.SOURCE_PLACE_NAME_LIST:
+            self.source_place_edit.addItem(source_place)
         self.main_designer_edit = QtGui.QLineEdit()
         self.design_all_edit = QtGui.QLineEdit()
         self.responsible_man_edit = QtGui.QLineEdit()
@@ -187,33 +231,35 @@ class Dialog(QtGui.QDialog):
 
         grid = QtGui.QGridLayout()
         #grid.setSpacing(10)
-
-        grid.addWidget(name_label, 1, 0)
-        grid.addWidget(self.name_edit, 1, 1)
-
-        grid.addWidget(search_id_label, 2, 0)
-        grid.addWidget(self.search_id_edit, 2, 1)
-
-        grid.addWidget(source_place_label, 3, 0)
-        grid.addWidget(self.source_place_edit, 3, 1)
-
-        grid.addWidget(main_designer_label, 4, 0)
-        grid.addWidget(self.main_designer_edit, 4, 1)
-
-        grid.addWidget(design_all_label, 5, 0)
-        grid.addWidget(self.design_all_edit, 5, 1)
-
-        grid.addWidget(responsible_man_label, 6, 0)
-        grid.addWidget(self.responsible_man_edit, 6, 1)
-
-        #grid.addWidget(attendee_label, 7, 0)
-        #grid.addWidget(self.attendee_edit, 7, 1)
-
-        grid.addWidget(start_time_label, 8, 0)
-        grid.addWidget(self.start_time_edit, 8, 1)
-
-        grid.addWidget(end_time_label, 9, 0)
-        grid.addWidget(self.end_time_edit, 9, 1)
+        count = 1
+        grid.addWidget(name_label, count, 0)
+        grid.addWidget(self.name_edit, count, 1)
+        grid.addWidget(self.is_name_correct_label, count, 2)
+        count += 1
+        grid.addWidget(search_id_label, count, 0)
+        grid.addWidget(self.search_id_edit, count, 1)
+        grid.addWidget(self.is_search_id_correct_label, count, 2)
+        count += 1
+        grid.addWidget(source_place_label, count, 0)
+        grid.addWidget(self.source_place_edit, count, 1)
+        count += 1
+        grid.addWidget(main_designer_label, count, 0)
+        grid.addWidget(self.main_designer_edit, count, 1)
+        grid.addWidget(self.is_main_designer_correct_label, count, 2)
+        count += 1
+        grid.addWidget(design_all_label, count, 0)
+        grid.addWidget(self.design_all_edit, count, 1)
+        grid.addWidget(self.is_design_all_correct_label, count, 2)
+        count += 1
+        grid.addWidget(responsible_man_label, count, 0)
+        grid.addWidget(self.responsible_man_edit, count, 1)
+        grid.addWidget(self.is_responsible_man_correct_label, count, 2)
+        count += 1
+        grid.addWidget(start_time_label, count, 0)
+        grid.addWidget(self.start_time_edit, count, 1)
+        count += 1
+        grid.addWidget(end_time_label, count, 0)
+        grid.addWidget(self.end_time_edit, count, 1)
 
         myBoxLayout = QtGui.QHBoxLayout()
         listWidgetALayout = QtGui.QVBoxLayout()
@@ -229,10 +275,6 @@ class Dialog(QtGui.QDialog):
         buttonLayout = QtGui.QVBoxLayout()
         buttonLayout.addWidget(self.addButton)
         buttonLayout.addWidget(self.removeButton)
-        staff_datas = StaffManager.search_staff()
-        for i in range(len(staff_datas)):
-            item = QtGui.QListWidgetItem(staff_datas[i][1])
-            self.listWidgetA.addItem(item)
 
         listWidgetALayout.addWidget(candidate_label)
         listWidgetALayout.addWidget(self.listWidgetA)
@@ -252,7 +294,8 @@ class Dialog(QtGui.QDialog):
         buttonBox.setOrientation(QtCore.Qt.Horizontal) # 设置为水平方向
         buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok) # 确定和取消两个按钮
         # 连接信号和槽
-        buttonBox.accepted.connect(self.accept) # 确定
+        #buttonBox.accepted.connect(self.accept) # 确定
+        buttonBox.button(QtGui.QDialogButtonBox.Ok).clicked.connect(self.accept_fun)
         buttonBox.rejected.connect(self.reject) # 取消
 
         # 垂直布局，布局表格及按钮
@@ -276,7 +319,7 @@ class Dialog(QtGui.QDialog):
         datas_dic = {}
         datas_dic['name'] = unicode(self.name_edit.text())
         datas_dic['search_id'] = unicode(self.search_id_edit.text())
-        datas_dic['source_place'] = unicode(self.source_place_edit.text())
+        datas_dic['source_place'] = unicode(self.source_place_edit.currentText())
         datas_dic['main_designer'] = unicode(self.main_designer_edit.text())
         datas_dic['design_all'] = unicode(self.design_all_edit.text())
         datas_dic['responsible_man'] = unicode(self.responsible_man_edit.text())
@@ -313,3 +356,9 @@ class Dialog(QtGui.QDialog):
             self.listWidgetB.takeItem(row_num)
         else:
             ToolsManager.information_box(u"注意", u"请选择一个参加人员!")
+
+    def accept_fun(self):
+        dic = self.get_add_datas()
+        success = ToolsManager.validate_data('project', self, dic)
+        if success:
+            self.accept()

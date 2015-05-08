@@ -13,7 +13,7 @@ class MainWindow(QtGui.QMainWindow):
         self.centralWidget = QtGui.QWidget()
         screen = QtGui.QDesktopWidget().screenGeometry()
         #self.resize(screen.width(), screen.height())            # 窗口最大化
-        self.resize(800, 500)
+        self.resize(1000, 618)
         self.setWindowTitle(u'人员项目管理系统')
         self.statusBar().showMessage('Ready')
 

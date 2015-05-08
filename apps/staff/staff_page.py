@@ -13,17 +13,17 @@ class staff_tab(QtGui.QWidget):
         super(staff_tab, self).__init__(parent)
 
         # 查询区域的按钮
-        addButton = QtGui.QPushButton(u"添加人员")
-        deleteButton = QtGui.QPushButton(u"删除人员")
-        updateButton = QtGui.QPushButton(u"更新人员")
-        allStaffButton = QtGui.QPushButton(u"所有人员")
-        idleStaffButton = QtGui.QPushButton(u"此刻闲置人员")
+        self.addButton = QtGui.QPushButton(u"添加人员")
+        self.deleteButton = QtGui.QPushButton(u"删除人员")
+        self.updateButton = QtGui.QPushButton(u"更新人员")
+        self.allStaffButton = QtGui.QPushButton(u"所有人员")
+        self.idleStaffButton = QtGui.QPushButton(u"此刻闲置人员")
         name_label = QtGui.QLabel(u'姓名')
         self.name_edit = QtGui.QLineEdit()
         name_list = [unicode(query.name) for query in StaffManager.get_all_staff()]
         name_str = QtCore.QStringList(name_list)             #预先设置字典
         self.name_edit.setCompleter(QtGui.QCompleter(name_str))          # 将字典添加到lineEdit中
-        start_time_label = QtGui.QLabel(u'起始时间')
+        start_time_label = QtGui.QLabel(u'起始日期')
         self.start_time_edit = QtGui.QDateEdit(self)
         self.start_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.start_time_edit.setDisplayFormat("yyyy-MM-dd")
@@ -32,7 +32,7 @@ class staff_tab(QtGui.QWidget):
         self.end_time_edit.setDateTime(QtCore.QDateTime.currentDateTime())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
-        end_time_label = QtGui.QLabel(u'终止时间')
+        end_time_label = QtGui.QLabel(u'终止日期')
         searchButton = QtGui.QPushButton(u"搜索")
 
         searchVbox = QtGui.QVBoxLayout()
@@ -45,12 +45,12 @@ class staff_tab(QtGui.QWidget):
         searchHbox1.addWidget(self.end_time_edit)
         searchHbox1.addWidget(searchButton)
         searchHbox1.addStretch(1)
-        searchHbox1.addWidget(addButton)
-        searchHbox1.addWidget(deleteButton)
-        searchHbox1.addWidget(updateButton)
+        searchHbox1.addWidget(self.addButton)
+        searchHbox1.addWidget(self.deleteButton)
+        searchHbox1.addWidget(self.updateButton)
 
-        searchHbox1.addWidget(allStaffButton)
-        searchHbox1.addWidget(idleStaffButton)
+        searchHbox1.addWidget(self.allStaffButton)
+        searchHbox1.addWidget(self.idleStaffButton)
         searchVbox.addLayout(searchHbox1)
 
         editAreaHbox = QtGui.QHBoxLayout()
@@ -69,26 +69,41 @@ class staff_tab(QtGui.QWidget):
         self.setLayout(vbox)
 
         self.setWindowTitle('box layout')
-        self.connect(addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_staff)
-        self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_staff)
-        # self.connect(allStaffButton, QtCore.SIGNAL('clicked()'), self.my_table.refresh_staff)
-        self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_staff)
-        self.connect(idleStaffButton, QtCore.SIGNAL('clicked()'), self.my_table.search_staff_project)
+        self.connect(self.addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_staff)
+        self.connect(self.deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_staff)
+        self.connect(self.allStaffButton, QtCore.SIGNAL('clicked()'), self.show_all_staff)
+        self.connect(self.updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_staff)
+        self.connect(self.idleStaffButton, QtCore.SIGNAL('clicked()'), self.show_all_staff)
         searchButton.clicked.connect(lambda: self.collect_data())
 
     def collect_data(self):
         para = {
             'name': unicode(self.name_edit.text()),
-            'start_time': unicode(self.start_time_edit.text()),
-            'end_time': unicode(self.end_time_edit.text())
+            'start_time': self.start_time_edit.date().toPyDate(),
+            'end_time': self.end_time_edit.date().toPyDate()
         }
-        self.my_table.search_staff_by_name_and_date(**para)
+        if para['name'] in (None, '') or para['end_time'] < para['start_time']:
+            if para['name'] in (None, ''):
+                ToolsManager.information_box(u'注意', u'请填写姓名再搜索！')
+            if para['end_time'] < para['start_time']:
+                ToolsManager.information_box(u'注意', u'起始日期应该小于终止日期！')
+        else:
+            self.addButton.setVisible(False)
+            self.deleteButton.setVisible(False)
+            self.updateButton.setVisible(False)
+            self.my_table.search_staff_by_name_and_date(**para)
+
+    def show_all_staff(self):
+        self.addButton.setVisible(True)
+        self.deleteButton.setVisible(True)
+        self.updateButton.setVisible(True)
+        self.my_table.get_and_show_all_staff()
+
 
 
 class MyTable(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(MyTable,self).__init__(parent)
-
         head_labels = constant.STAFF_COLUMN
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
@@ -99,6 +114,9 @@ class MyTable(QtGui.QTableWidget):
     def add_staff(self):
         dialog = Dialog()
         if dialog.exec_():
+            dic = dialog.get_add_datas()
+            user = User(**dic)
+            StaffManager.add_staff(user)
             search_datas = StaffManager.search_staff()
             self.refresh_staff(search_datas)
             dialog.destroy()
@@ -145,31 +163,32 @@ class MyTable(QtGui.QTableWidget):
             dialog.name_edit.setText(staff_item.name)
             dialog.employee_id_edit.setText(staff_item.employee_id)
             dialog.phone_number_edit.setText(staff_item.phone_number)
-            #dialog.birth_date_edit.setDateTime()
-            dialog.title_edit.setText(staff_item.title)
-            dialog.education_edit.setText(staff_item.education)
+            dialog.tel_number_edit.setText(staff_item.tel_number)
+            dialog.birth_date_edit.setDate(staff_item.birth_date)
+            dialog.title_edit.setCurrentIndex(dialog.title_edit.findText(staff_item.title))
+            dialog.position_edit.setCurrentIndex(dialog.position_edit.findText(staff_item.position))
+            dialog.education_edit.setCurrentIndex(dialog.education_edit.findText(staff_item.education))
             if dialog.exec_():
                 dic = dialog.get_add_datas()
                 dic['id'] = int(id_text)
                 StaffManager.updata_staff(dic)
                 search_datas = StaffManager.search_staff()
                 self.refresh_staff(search_datas)
-            dialog.destroy()
+                dialog.destroy()
         else:
             # 弹出警告
             ToolsManager.information_box(u"注意", u"请选择一行进行更新!")
 
-    def search_staff_project(self):
-        indexes = self.selectionModel().selectedRows()
-        if(len(indexes)) == 1:
-            name_text = unicode(self.item(indexes[0].row(), 1).text())
-            StaffManager.search_staff_project_by_staff_name(name_text)
-        else:
-            ToolsManager.information_box(u"注意", u"请选择一行进行搜索!")
-
     def search_staff_by_name_and_date(self, **kwargs):
         search_datas = StaffManager.search_staff_project_by_staff_name_and_data(**kwargs)
         head_labels = constant.STAFF_SEARCH_COLUMN
+        self.setColumnCount(len(head_labels))
+        self.setHorizontalHeaderLabels(head_labels)
+        self.refresh_staff(search_datas)
+
+    def get_and_show_all_staff(self):
+        search_datas = StaffManager.search_staff()
+        head_labels = constant.STAFF_COLUMN
         self.setColumnCount(len(head_labels))
         self.setHorizontalHeaderLabels(head_labels)
         self.refresh_staff(search_datas)
@@ -221,34 +240,34 @@ class Dialog(QtGui.QDialog):
 
         grid = QtGui.QGridLayout()
         #grid.setSpacing(10)
-
-        grid.addWidget(name_label, 1, 0)
-        grid.addWidget(self.name_edit, 1, 1)
-        grid.addWidget(self.is_name_correct_label, 1, 2)
-
-        grid.addWidget(employee_id_label, 2, 0)
-        grid.addWidget(self.employee_id_edit, 2, 1)
-        grid.addWidget(self.is_employee_id_correct_label, 2, 2)
-
-        grid.addWidget(phone_number_label, 3, 0)
-        grid.addWidget(self.phone_number_edit, 3, 1)
-        grid.addWidget(self.is_phone_number_correct_label, 3, 2)
-
-        grid.addWidget(tel_number_label, 4, 0)
-        grid.addWidget(self.tel_number_edit, 4, 1)
-        grid.addWidget(self.is_tel_number_correct_label, 4, 2)
-
-        grid.addWidget(birth_date_label, 5, 0)
-        grid.addWidget(self.birth_date_edit, 5, 1)
-
-        grid.addWidget(title_label, 6, 0)
-        grid.addWidget(self.title_edit, 6, 1)
-
-        grid.addWidget(position_label, 7, 0)
-        grid.addWidget(self.position_edit, 7, 1)
-
-        grid.addWidget(education_label, 8, 0)
-        grid.addWidget(self.education_edit, 8, 1)
+        count = 1
+        grid.addWidget(name_label, count, 0)
+        grid.addWidget(self.name_edit, count, 1)
+        grid.addWidget(self.is_name_correct_label, count, 2)
+        count += 1
+        grid.addWidget(employee_id_label, count, 0)
+        grid.addWidget(self.employee_id_edit, count, 1)
+        grid.addWidget(self.is_employee_id_correct_label, count, 2)
+        count += 1
+        grid.addWidget(phone_number_label, count, 0)
+        grid.addWidget(self.phone_number_edit, count, 1)
+        grid.addWidget(self.is_phone_number_correct_label, count, 2)
+        count += 1
+        grid.addWidget(tel_number_label, count, 0)
+        grid.addWidget(self.tel_number_edit, count, 1)
+        grid.addWidget(self.is_tel_number_correct_label, count, 2)
+        count += 1
+        grid.addWidget(birth_date_label, count, 0)
+        grid.addWidget(self.birth_date_edit, count, 1)
+        count += 1
+        grid.addWidget(title_label, count, 0)
+        grid.addWidget(self.title_edit, count, 1)
+        count += 1
+        grid.addWidget(position_label, count, 0)
+        grid.addWidget(self.position_edit, count, 1)
+        count += 1
+        grid.addWidget(education_label, count, 0)
+        grid.addWidget(self.education_edit, count, 1)
 
         self.setWindowTitle(u'添加')
 
@@ -291,8 +310,6 @@ class Dialog(QtGui.QDialog):
 
     def accept_fun(self):
         dic = self.get_add_datas()
-        user = User(**dic)
         success = ToolsManager.validate_data('staff', self, dic)
         if success:
-            StaffManager.add_staff(user)
             self.accept()

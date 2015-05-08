@@ -1,7 +1,8 @@
 #coding=cp936
 __author__ = 'admin'
 
-from apps.db.db_models import User, UserProject
+import copy
+from apps.db.db_models import User, UserProject, Project
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
 from sqlalchemy import and_, or_, except_
@@ -43,18 +44,20 @@ class StaffManager(object):
 
     @staticmethod
     def get_all_staff():
-        query = session.query(User).all()
-        return query
+        query_result = session.query(User).all()
+        return query_result
 
     @staticmethod
     def updata_staff(dic):
         item = session.query(User).filter(User.id == dic.get('id')).one()
         item.name = dic.get('name')
-        item.employee_id=dic.get('employee_id')
-        item.phone_number=dic.get('phone_number')
-        item.birth_date=dic.get('birth_date')
-        item.title=dic.get('title')
-        item.education=dic.get('education')
+        item.employee_id = dic.get('employee_id')
+        item.phone_number = dic.get('phone_number')
+        item.tel_number = dic.get('tel_number')
+        item.birth_date = dic.get('birth_date')
+        item.title = dic.get('title')
+        item.position = dic.get('position')
+        item.education = dic.get('education')
         session.add(item)
         session.commit()
 
@@ -70,7 +73,7 @@ class StaffManager(object):
 
     @staticmethod
     def add_staff_project(project_id, attendee_ids_str):
-        if attendee_ids_str != '':
+        if attendee_ids_str not in (None, ''):
             attendee_ids_list = attendee_ids_str.split(',')
             for id in attendee_ids_list:
                 item = UserProject(user_id=id, project_id=project_id)
@@ -96,16 +99,16 @@ class StaffManager(object):
         search_datas = []
         i = 0
         staff_id = StaffManager.get_one_item_by_name(kwargs.get('name')).id
-        query = session.query(UserProject).filter(UserProject.user_id == staff_id).all()
-            # filter(except_(UserProject.project.start_time > kwargs.get('end_time'))).\
-            # filter(except_(UserProject.project.end_time < kwargs.get('start_time'))).all()
-        for query_meta in query:
-            search_datas.append([])
-            search_datas[i].append(query_meta.id)
-            search_datas[i].append(query_meta.user.name)
-            search_datas[i].append(query_meta.project.name)
-            search_datas[i].append(query_meta.project.start_time)
-            search_datas[i].append(query_meta.project.end_time)
-            search_datas[i].append(query_meta.project.attendee)
-            i += 1
+        query_result = session.query(UserProject).filter(UserProject.user_id == staff_id).all()
+        for query_meta in query_result:
+            if query_meta.project.start_time > kwargs.get('end_time') or query_meta.project.end_time < kwargs.get('start_time'):
+                pass
+            else:
+                search_datas.append([])
+                search_datas[i].append(query_meta.user.name)
+                search_datas[i].append(query_meta.project.name)
+                search_datas[i].append(query_meta.project.start_time)
+                search_datas[i].append(query_meta.project.end_time)
+                search_datas[i].append(query_meta.project.attendee)
+                i += 1
         return search_datas
