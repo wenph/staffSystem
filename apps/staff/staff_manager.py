@@ -16,7 +16,7 @@ class StaffManager(object):
             session.commit()
         else:
             # 弹出警告
-            ToolsManager.information_box(u"注意", u"\"%s\"已经存在数据库中!" % str(user_obj.name))
+            ToolsManager.information_box(u"注意", u"\"%s\"已经存在数据库中!" % unicode(user_obj.name))
 
     @staticmethod
     def delete_staff(ids_list):

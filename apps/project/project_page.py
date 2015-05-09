@@ -75,7 +75,8 @@ class project_tab(QtGui.QWidget):
     def search_project_by_name(self):
         project_name = unicode(self.name_edit.text())
         if project_name not in (None, ''):
-            pass
+            search_datas = ProjectManager.search_project_by_name(project_name)
+            self.my_table.refresh_project(search_datas)
         else:
             ToolsManager.information_box(u'注意', u'请填写项目名再搜索！')
 
@@ -87,7 +88,8 @@ class project_tab(QtGui.QWidget):
         if para['end_time'] < para['start_time']:
             ToolsManager.information_box(u'注意', u'起始日期应该小于终止日期！')
         else:
-            pass
+            search_datas = ProjectManager.search_project_by_date(**para)
+            self.my_table.refresh_project(search_datas)
 
 
 class MyTable(QtGui.QTableWidget):
@@ -98,7 +100,8 @@ class MyTable(QtGui.QTableWidget):
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
-        self.refresh_project()
+        search_datas = ProjectManager.get_all_project_and_format()
+        self.refresh_project(search_datas)
 
     def add_project(self):
         dialog = Dialog()
@@ -112,11 +115,12 @@ class MyTable(QtGui.QTableWidget):
             project = Project(**dic)
             project = ProjectManager.add_project(project)
             StaffManager.add_staff_project(project.id, attendee_ids)
-            self.refresh_project()
+            search_datas = ProjectManager.get_all_project_and_format()
+            self.refresh_project(search_datas)
             dialog.destroy()
 
-    def refresh_project(self):
-        search_datas = ProjectManager.search_project()
+    def refresh_project(self, search_datas):
+        #search_datas = ProjectManager.get_all_project_and_format()
         if len(search_datas) == 0:
             self.setRowCount(0)
         else:
@@ -143,7 +147,8 @@ class MyTable(QtGui.QTableWidget):
                     ids_list.append(int(id_text))
                 ProjectManager.delete_project(ids_list)
                 StaffManager.delete_staff_project_by_project_ids(ids_list)
-                self.refresh_project()
+                search_datas = ProjectManager.get_all_project_and_format()
+                self.refresh_project(search_datas)
             else:
                 pass
 
@@ -163,7 +168,12 @@ class MyTable(QtGui.QTableWidget):
             dialog.responsible_man_edit.setText(project_item.responsible_man)
             dialog.start_time_edit.setDate(project_item.start_time)
             dialog.end_time_edit.setDate(project_item.end_time)
-            if project_item.attendee not in (None, ''):
+            dialog.name_edit.setReadOnly(True)
+            if project_item.attendee in (None, ''):         # 项目里没人
+                staff_datas = StaffManager.get_all_staff()
+                for staff in staff_datas:
+                    dialog.listWidgetA.addItem(staff.name)
+            else:
                 staff_name_list = project_item.attendee.split(',')
                 for staff_name in staff_name_list:
                     dialog.listWidgetB.addItem(staff_name)
@@ -176,7 +186,8 @@ class MyTable(QtGui.QTableWidget):
                 dic = dialog.get_add_datas()
                 dic['id'] = int(id_text)
                 ProjectManager.updata_project(dic)
-                self.refresh_project()
+                search_datas = ProjectManager.get_all_project_and_format()
+                self.refresh_project(search_datas)
                 dialog.destroy()
         else:
             # 弹出警告
@@ -207,6 +218,8 @@ class Dialog(QtGui.QDialog):
         self.is_responsible_man_correct_label.setVisible(False)
         start_time_label = QtGui.QLabel(u'开始时间')
         end_time_label = QtGui.QLabel(u'结束时间')
+        self.is_end_time_correct_label = QtGui.QLabel(u'结束时间不能小于开始时间！')
+        self.is_end_time_correct_label.setVisible(False)
         candidate_label = QtGui.QLabel(u'待选人员')
         attendee_label = QtGui.QLabel(u'参加人员')
 
@@ -260,6 +273,7 @@ class Dialog(QtGui.QDialog):
         count += 1
         grid.addWidget(end_time_label, count, 0)
         grid.addWidget(self.end_time_edit, count, 1)
+        grid.addWidget(self.is_end_time_correct_label, count, 2)
 
         myBoxLayout = QtGui.QHBoxLayout()
         listWidgetALayout = QtGui.QVBoxLayout()

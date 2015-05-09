@@ -5,6 +5,7 @@ from apps.db.db_models import Project
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
 from apps.staff.staff_manager import StaffManager
+from sqlalchemy import and_, or_, except_
 
 class ProjectManager(object):
     @staticmethod
@@ -15,7 +16,7 @@ class ProjectManager(object):
             session.commit()
         else:
             # 弹出警告
-            ToolsManager.information_box(u"注意", u"\"%s\"已经存在数据库中!" % str(user_obj.name))
+            ToolsManager.information_box(u"注意", u"\"%s\"已经存在数据库中!" % unicode(user_obj.name))
         return user_obj
 
     @staticmethod
@@ -24,8 +25,7 @@ class ProjectManager(object):
         session.commit()
 
     @staticmethod
-    def search_project():
-        query = ProjectManager.get_all_project()
+    def project_data_format(query):
         search_datas = []
         i = 0
         for query_meta in query:
@@ -42,6 +42,13 @@ class ProjectManager(object):
             search_datas[i].append(query_meta.attendee)
             i = i + 1
         return search_datas
+
+    @staticmethod
+    def get_all_project_and_format():
+        query = ProjectManager.get_all_project()
+        search_datas = ProjectManager.project_data_format(query)
+        return search_datas
+
 
     @staticmethod
     def get_all_project():
@@ -69,3 +76,20 @@ class ProjectManager(object):
     def get_one_item_by_id(item_id):
         item = session.query(Project).filter(Project.id == item_id).one()
         return item
+
+    @staticmethod
+    def search_project_by_name(project_name):
+        query_result = session.query(Project).filter(Project.name.like('%%%%%s%%%%' % project_name)).all()
+        search_datas = ProjectManager.project_data_format(query_result)
+        return search_datas
+
+    @staticmethod
+    def search_project_by_date(**kwargs):
+        except_q = session.query(Project).filter(
+            or_(Project.start_time > kwargs.get('end_time'), Project.end_time < kwargs.get('start_time'))
+        )
+        query_result = session.query(Project).except_(except_q).all()
+        search_datas = ProjectManager.project_data_format(query_result)
+        return search_datas
+
+

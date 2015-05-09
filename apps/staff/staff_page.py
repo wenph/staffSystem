@@ -64,8 +64,6 @@ class staff_tab(QtGui.QWidget):
         vbox.addLayout(editAreaHbox)
         vbox.addWidget(self.my_table)
 
-
-
         self.setLayout(vbox)
 
         self.setWindowTitle('box layout')
@@ -168,6 +166,7 @@ class MyTable(QtGui.QTableWidget):
             dialog.title_edit.setCurrentIndex(dialog.title_edit.findText(staff_item.title))
             dialog.position_edit.setCurrentIndex(dialog.position_edit.findText(staff_item.position))
             dialog.education_edit.setCurrentIndex(dialog.education_edit.findText(staff_item.education))
+            dialog.name_edit.setReadOnly(True)
             if dialog.exec_():
                 dic = dialog.get_add_datas()
                 dic['id'] = int(id_text)
@@ -310,6 +309,6 @@ class Dialog(QtGui.QDialog):
 
     def accept_fun(self):
         dic = self.get_add_datas()
-        success = ToolsManager.validate_data('staff', self, dic)
-        if success:
+        success_data = ToolsManager.validate_data('staff', self, dic)
+        if success_data:
             self.accept()
