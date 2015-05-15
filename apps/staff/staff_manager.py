@@ -1,11 +1,11 @@
 #coding=cp936
 __author__ = 'admin'
 
-import copy
+import datetime
 from apps.db.db_models import User, UserProject, Project
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
-from sqlalchemy import and_, or_, except_
+from sqlalchemy import and_, or_, except_, desc
 
 class StaffManager(object):
     @staticmethod
@@ -24,27 +24,50 @@ class StaffManager(object):
         session.commit()
 
     @staticmethod
-    def search_staff():
+    def search_all_staff():
         query = StaffManager.get_all_staff()
         search_datas = []
-        i = 0
         for query_meta in query:
-            search_datas.append([])
-            search_datas[i].append(query_meta.id)
-            search_datas[i].append(query_meta.name)
-            search_datas[i].append(query_meta.employee_id)
-            search_datas[i].append(query_meta.phone_number)
-            search_datas[i].append(query_meta.tel_number)
-            search_datas[i].append(query_meta.birth_date)
-            search_datas[i].append(query_meta.title)
-            search_datas[i].append(query_meta.position)
-            search_datas[i].append(query_meta.education)
-            i += 1
+            query_meta_list = []
+            query_meta_list.append(query_meta.id)
+            query_meta_list.append(query_meta.name)
+            query_meta_list.append(query_meta.employee_id)
+            query_meta_list.append(query_meta.phone_number)
+            query_meta_list.append(query_meta.tel_number)
+            query_meta_list.append(query_meta.birth_date)
+            query_meta_list.append(query_meta.title)
+            query_meta_list.append(query_meta.position)
+            query_meta_list.append(query_meta.education)
+            project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
+            query_meta_list.append(project_str)
+            search_datas.append(query_meta_list)
         return search_datas
 
     @staticmethod
+    def search_idle_staff():
+        query = StaffManager.get_all_staff()
+        search_datas = []
+        for query_meta in query:
+            query_meta_list = []
+            query_meta_list.append(query_meta.id)
+            query_meta_list.append(query_meta.name)
+            query_meta_list.append(query_meta.employee_id)
+            query_meta_list.append(query_meta.phone_number)
+            query_meta_list.append(query_meta.tel_number)
+            query_meta_list.append(query_meta.birth_date)
+            query_meta_list.append(query_meta.title)
+            query_meta_list.append(query_meta.position)
+            query_meta_list.append(query_meta.education)
+            project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
+            query_meta_list.append(project_str)
+            if project_str == '':  # 闲置人员
+                search_datas.append(query_meta_list)
+        return search_datas
+
+
+    @staticmethod
     def get_all_staff():
-        query_result = session.query(User).all()
+        query_result = session.query(User).order_by(User.id).all()
         return query_result
 
     @staticmethod
@@ -92,16 +115,19 @@ class StaffManager(object):
 
     @staticmethod
     def delete_staff_project_by_staff_project_id(user_id, project_id):
-        session.query(UserProject).filter(and_(UserProject.user_id == user_id, UserProject.project_id == project_id)).delete()
+        session.query(UserProject).\
+            filter(and_(UserProject.user_id == user_id, UserProject.project_id == project_id)).delete()
 
     @staticmethod
     def search_staff_project_by_staff_name_and_data(**kwargs):
         search_datas = []
         i = 0
         staff_id = StaffManager.get_one_item_by_name(kwargs.get('name')).id
-        query_result = session.query(UserProject).filter(UserProject.user_id == staff_id).all()
+        query_result = session.query(UserProject).filter(UserProject.user_id == staff_id).\
+            order_by(desc(UserProject.project_id)).all()
         for query_meta in query_result:
-            if query_meta.project.start_time > kwargs.get('end_time') or query_meta.project.end_time < kwargs.get('start_time'):
+            if query_meta.project.start_time > kwargs.get('end_time') \
+                or query_meta.project.end_time < kwargs.get('start_time'):
                 pass
             else:
                 search_datas.append([])
@@ -109,6 +135,39 @@ class StaffManager(object):
                 search_datas[i].append(query_meta.project.name)
                 search_datas[i].append(query_meta.project.start_time)
                 search_datas[i].append(query_meta.project.end_time)
-                search_datas[i].append(query_meta.project.attendee)
+                staff_str = StaffManager.search_staff_by_project_id(query_meta.project.id)
+                search_datas[i].append(staff_str)
                 i += 1
         return search_datas
+
+    @staticmethod
+    def search_staff_by_project_id(project_id):
+        staff_str = ''
+        query_result = session.query(UserProject).filter(UserProject.project_id == project_id).\
+            order_by(UserProject.user_id).all()
+        for query_meta in query_result:
+            staff_str += query_meta.user.name + ','
+        if staff_str != '':
+            staff_str = staff_str[:-1]              # 去掉最后一个逗号
+        return staff_str
+
+    @staticmethod
+    def search_project_by_user_id_and_now(user_id):
+        project_str = ''
+        today = datetime.date.today()
+        para = {
+            "start_time": today,
+            "end_time": today
+        }
+        from apps.project.project_manager import ProjectManager
+        project_search_datas = ProjectManager.search_project_by_date(**para)
+        for project_search_data in project_search_datas:
+            project_user_search_datas = session.query(UserProject).\
+                filter(and_(UserProject.project_id == project_search_data[0], UserProject.user_id == user_id)).\
+                order_by(desc(UserProject.project_id)).all()
+            if len(project_user_search_datas) != 0:
+                for project_user_search_data in project_user_search_datas:
+                    project_str += project_user_search_data.project.name + ','
+        if project_str != '':
+            project_str = project_str[:-1]
+        return project_str

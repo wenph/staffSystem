@@ -34,7 +34,6 @@ class Project(Base):
     responsible_man = Column(String)
     start_time = Column(Date)
     end_time = Column(Date)
-    attendee = Column(String)
     userproject = relationship('UserProject')
 
 

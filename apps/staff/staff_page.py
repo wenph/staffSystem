@@ -71,7 +71,7 @@ class staff_tab(QtGui.QWidget):
         self.connect(self.deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_staff)
         self.connect(self.allStaffButton, QtCore.SIGNAL('clicked()'), self.show_all_staff)
         self.connect(self.updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_staff)
-        self.connect(self.idleStaffButton, QtCore.SIGNAL('clicked()'), self.show_all_staff)
+        self.connect(self.idleStaffButton, QtCore.SIGNAL('clicked()'), self.show_idle_staff)
         searchButton.clicked.connect(lambda: self.collect_data())
 
     def collect_data(self):
@@ -97,6 +97,12 @@ class staff_tab(QtGui.QWidget):
         self.updateButton.setVisible(True)
         self.my_table.get_and_show_all_staff()
 
+    def show_idle_staff(self):
+        self.addButton.setVisible(True)
+        self.deleteButton.setVisible(True)
+        self.updateButton.setVisible(True)
+        self.my_table.get_and_show_idle_staff()
+
 
 
 class MyTable(QtGui.QTableWidget):
@@ -106,7 +112,7 @@ class MyTable(QtGui.QTableWidget):
         self.setColumnCount(len(head_labels))
         self.setRowCount(0)
         self.setHorizontalHeaderLabels(head_labels)
-        search_datas = StaffManager.search_staff()
+        search_datas = StaffManager.search_all_staff()
         self.refresh_staff(search_datas)
 
     def add_staff(self):
@@ -115,7 +121,7 @@ class MyTable(QtGui.QTableWidget):
             dic = dialog.get_add_datas()
             user = User(**dic)
             StaffManager.add_staff(user)
-            search_datas = StaffManager.search_staff()
+            search_datas = StaffManager.search_all_staff()
             self.refresh_staff(search_datas)
             dialog.destroy()
 
@@ -146,7 +152,7 @@ class MyTable(QtGui.QTableWidget):
                     ids_list.append(int(id_text))
                 StaffManager.delete_staff(ids_list)
                 StaffManager.delete_staff_project_by_staff_ids(ids_list)
-                search_datas = StaffManager.search_staff()
+                search_datas = StaffManager.search_all_staff()
                 self.refresh_staff(search_datas)
             else:
                 pass
@@ -171,7 +177,7 @@ class MyTable(QtGui.QTableWidget):
                 dic = dialog.get_add_datas()
                 dic['id'] = int(id_text)
                 StaffManager.updata_staff(dic)
-                search_datas = StaffManager.search_staff()
+                search_datas = StaffManager.search_all_staff()
                 self.refresh_staff(search_datas)
                 dialog.destroy()
         else:
@@ -186,11 +192,19 @@ class MyTable(QtGui.QTableWidget):
         self.refresh_staff(search_datas)
 
     def get_and_show_all_staff(self):
-        search_datas = StaffManager.search_staff()
+        search_datas = StaffManager.search_all_staff()
         head_labels = constant.STAFF_COLUMN
         self.setColumnCount(len(head_labels))
         self.setHorizontalHeaderLabels(head_labels)
         self.refresh_staff(search_datas)
+
+    def get_and_show_idle_staff(self):
+        search_datas = StaffManager.search_idle_staff()
+        head_labels = constant.STAFF_COLUMN
+        self.setColumnCount(len(head_labels))
+        self.setHorizontalHeaderLabels(head_labels)
+        self.refresh_staff(search_datas)
+
 
 class Dialog(QtGui.QDialog):
     def __init__(self, parent=None):

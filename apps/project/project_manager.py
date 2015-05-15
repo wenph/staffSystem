@@ -5,7 +5,7 @@ from apps.db.db_models import Project
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
 from apps.staff.staff_manager import StaffManager
-from sqlalchemy import and_, or_, except_
+from sqlalchemy import and_, or_, except_, desc
 
 class ProjectManager(object):
     @staticmethod
@@ -39,7 +39,8 @@ class ProjectManager(object):
             search_datas[i].append(query_meta.responsible_man)
             search_datas[i].append(query_meta.start_time)
             search_datas[i].append(query_meta.end_time)
-            search_datas[i].append(query_meta.attendee)
+            staff_str = StaffManager.search_staff_by_project_id(query_meta.id)
+            search_datas[i].append(staff_str)
             i = i + 1
         return search_datas
 
@@ -52,7 +53,7 @@ class ProjectManager(object):
 
     @staticmethod
     def get_all_project():
-        query = session.query(Project).all()
+        query = session.query(Project).order_by(desc(Project.id)).all()
         return query
 
     @staticmethod
@@ -64,7 +65,6 @@ class ProjectManager(object):
         item.main_designer = dic.get('main_designer')
         item.design_all = dic.get('design_all')
         item.responsible_man = dic.get('responsible_man')
-        item.attendee = dic.get('attendee')
         item.start_time = dic.get('start_time')
         item.end_time = dic.get('end_time')
         session.add(item)
@@ -79,7 +79,7 @@ class ProjectManager(object):
 
     @staticmethod
     def search_project_by_name(project_name):
-        query_result = session.query(Project).filter(Project.name.like('%%%%%s%%%%' % project_name)).all()
+        query_result = session.query(Project).filter(Project.name.like('%%%%%s%%%%' % project_name)).order_by(desc(Project.id)).all()
         search_datas = ProjectManager.project_data_format(query_result)
         return search_datas
 
@@ -88,7 +88,7 @@ class ProjectManager(object):
         except_q = session.query(Project).filter(
             or_(Project.start_time > kwargs.get('end_time'), Project.end_time < kwargs.get('start_time'))
         )
-        query_result = session.query(Project).except_(except_q).all()
+        query_result = session.query(Project).except_(except_q).order_by(desc(Project.id)).all()
         search_datas = ProjectManager.project_data_format(query_result)
         return search_datas
 

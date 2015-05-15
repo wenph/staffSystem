@@ -15,7 +15,7 @@ class MainWindow(QtGui.QMainWindow):
         #self.resize(screen.width(), screen.height())            # 窗口最大化
         self.resize(1000, 618)
         self.setWindowTitle(u'人员项目管理系统')
-        self.statusBar().showMessage('Ready')
+        self.statusBar().showMessage(u'@版权所有')
 
         vbox = QtGui.QVBoxLayout()
 
@@ -38,7 +38,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tabs_widget.blockSignals(False)           # now listen the currentChanged signal
 
     def onChange(self, i):
-        print i
+        pass
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

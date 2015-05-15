@@ -18,6 +18,7 @@ class project_tab(QtGui.QWidget):
         addButton = QtGui.QPushButton(u"添加项目")
         deleteButton = QtGui.QPushButton(u"删除项目")
         updateButton = QtGui.QPushButton(u"更新项目")
+        allProjectButton = QtGui.QPushButton(u"所有项目")
         name_label = QtGui.QLabel(u'项目名称')
         self.name_edit = QtGui.QLineEdit()
         name_list = [unicode(query.name) for query in ProjectManager.get_all_project()]
@@ -50,6 +51,7 @@ class project_tab(QtGui.QWidget):
         searchHbox1.addWidget(addButton)
         searchHbox1.addWidget(deleteButton)
         searchHbox1.addWidget(updateButton)
+        searchHbox1.addWidget(allProjectButton)
         searchVbox.addLayout(searchHbox1)
 
         editAreaHbox = QtGui.QHBoxLayout()
@@ -69,6 +71,7 @@ class project_tab(QtGui.QWidget):
         self.connect(addButton, QtCore.SIGNAL('clicked()'), self.my_table.add_project)
         self.connect(deleteButton, QtCore.SIGNAL('clicked()'), self.my_table.delete_project)
         self.connect(updateButton, QtCore.SIGNAL('clicked()'), self.my_table.update_project)
+        self.connect(allProjectButton, QtCore.SIGNAL('clicked()'), self.my_table.all_project)
         self.connect(searchNameButton, QtCore.SIGNAL('clicked()'), self.search_project_by_name)
         self.connect(searchDateButton, QtCore.SIGNAL('clicked()'), self.search_project_by_date)
 
@@ -105,9 +108,9 @@ class MyTable(QtGui.QTableWidget):
 
     def add_project(self):
         dialog = Dialog()
-        staff_datas = StaffManager.get_all_staff()
-        for staff in staff_datas:
-            dialog.listWidgetA.addItem(QtGui.QListWidgetItem(staff.name))
+        staff_data_list = StaffManager.search_idle_staff()
+        for staff in staff_data_list:
+            dialog.listWidgetA.addItem(QtGui.QListWidgetItem(staff[1]))
         if dialog.exec_():
             dic = dialog.get_add_datas()
             attendee_ids = copy.deepcopy(dic['attendee_ids'])
@@ -120,7 +123,6 @@ class MyTable(QtGui.QTableWidget):
             dialog.destroy()
 
     def refresh_project(self, search_datas):
-        #search_datas = ProjectManager.get_all_project_and_format()
         if len(search_datas) == 0:
             self.setRowCount(0)
         else:
@@ -169,18 +171,19 @@ class MyTable(QtGui.QTableWidget):
             dialog.start_time_edit.setDate(project_item.start_time)
             dialog.end_time_edit.setDate(project_item.end_time)
             dialog.name_edit.setReadOnly(True)
-            if project_item.attendee in (None, ''):         # 项目里没人
-                staff_datas = StaffManager.get_all_staff()
-                for staff in staff_datas:
-                    dialog.listWidgetA.addItem(staff.name)
+            staff_str = StaffManager.search_staff_by_project_id(project_item.id)
+            if staff_str == '':         # 项目里没人
+                staff_data_list = StaffManager.search_idle_staff()
+                for staff in staff_data_list:
+                    dialog.listWidgetA.addItem(staff[1])            # "1"是列表的的名字字段
             else:
-                staff_name_list = project_item.attendee.split(',')
+                staff_name_list = staff_str.split(',')
                 for staff_name in staff_name_list:
                     dialog.listWidgetB.addItem(staff_name)
-                staff_datas = StaffManager.get_all_staff()
-                for staff in staff_datas:
-                    if staff.name not in staff_name_list:
-                        dialog.listWidgetA.addItem(staff.name)
+                staff_data_list = StaffManager.search_idle_staff()
+                for staff in staff_data_list:
+                    if staff[1] not in staff_name_list:
+                        dialog.listWidgetA.addItem(staff[1])
 
             if dialog.exec_():
                 dic = dialog.get_add_datas()
@@ -192,6 +195,10 @@ class MyTable(QtGui.QTableWidget):
         else:
             # 弹出警告
             ToolsManager.information_box(u"注意", u"请选择一行进行更新!")
+
+    def all_project(self):
+        search_datas = ProjectManager.get_all_project_and_format()
+        self.refresh_project(search_datas)
 
 
 class Dialog(QtGui.QDialog):
@@ -350,7 +357,6 @@ class Dialog(QtGui.QDialog):
             attendee_names += staff_name + ","
 
         datas_dic['attendee_ids'] = attendee_ids.rstrip(',')
-        datas_dic['attendee'] = attendee_names.rstrip(',')
         return datas_dic
 
     def add_fun(self):
