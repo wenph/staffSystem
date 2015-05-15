@@ -27,21 +27,21 @@ class ProjectManager(object):
     @staticmethod
     def project_data_format(query):
         search_datas = []
-        i = 0
         for query_meta in query:
-            search_datas.append([])
-            search_datas[i].append(query_meta.id)
-            search_datas[i].append(query_meta.name)
-            search_datas[i].append(query_meta.search_id)
-            search_datas[i].append(query_meta.source_place)
-            search_datas[i].append(query_meta.main_designer)
-            search_datas[i].append(query_meta.design_all)
-            search_datas[i].append(query_meta.responsible_man)
-            search_datas[i].append(query_meta.start_time)
-            search_datas[i].append(query_meta.end_time)
+            query_meta_list = []
+            query_meta_list.append(query_meta.id)
+            query_meta_list.append(query_meta.name)
+            query_meta_list.append(query_meta.search_id)
+            query_meta_list.append(query_meta.source_place)
+            query_meta_list.append(query_meta.main_designer)
+            query_meta_list.append(query_meta.design_all)
+            query_meta_list.append(query_meta.responsible_man)
+            query_meta_list.append(query_meta.start_time)
+            query_meta_list.append(query_meta.end_time)
             staff_str = StaffManager.search_staff_by_project_id(query_meta.id)
-            search_datas[i].append(staff_str)
-            i = i + 1
+            query_meta_list.append(staff_str)
+            query_meta_list.append(query_meta.description)
+            search_datas.append(query_meta_list)
         return search_datas
 
     @staticmethod
@@ -67,6 +67,7 @@ class ProjectManager(object):
         item.responsible_man = dic.get('responsible_man')
         item.start_time = dic.get('start_time')
         item.end_time = dic.get('end_time')
+        item.description = dic.get('description')
         session.add(item)
         session.commit()
         StaffManager.delete_staff_project_by_project_ids([item.id])

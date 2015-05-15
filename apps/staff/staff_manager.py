@@ -40,6 +40,9 @@ class StaffManager(object):
             query_meta_list.append(query_meta.education)
             project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
             query_meta_list.append(project_str)
+            out_door_days = 0
+            query_meta_list.append(out_door_days)
+            query_meta_list.append(query_meta.description)
             search_datas.append(query_meta_list)
         return search_datas
 
@@ -60,6 +63,9 @@ class StaffManager(object):
             query_meta_list.append(query_meta.education)
             project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
             query_meta_list.append(project_str)
+            out_door_days = 0
+            query_meta_list.append(out_door_days)
+            query_meta_list.append(query_meta.description)
             if project_str == '':  # œ–÷√»À‘±
                 search_datas.append(query_meta_list)
         return search_datas
@@ -81,6 +87,7 @@ class StaffManager(object):
         item.title = dic.get('title')
         item.position = dic.get('position')
         item.education = dic.get('education')
+        item.description = dic.get('description')
         session.add(item)
         session.commit()
 

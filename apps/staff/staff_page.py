@@ -172,6 +172,7 @@ class MyTable(QtGui.QTableWidget):
             dialog.title_edit.setCurrentIndex(dialog.title_edit.findText(staff_item.title))
             dialog.position_edit.setCurrentIndex(dialog.position_edit.findText(staff_item.position))
             dialog.education_edit.setCurrentIndex(dialog.education_edit.findText(staff_item.education))
+            dialog.description_edit.setText(staff_item.description)
             dialog.name_edit.setReadOnly(True)
             if dialog.exec_():
                 dic = dialog.get_add_datas()
@@ -228,6 +229,7 @@ class Dialog(QtGui.QDialog):
         title_label = QtGui.QLabel(u'职称')
         position_label = QtGui.QLabel(u'职位')
         education_label = QtGui.QLabel(u'学历')
+        description_label = QtGui.QLabel(u'备注')
 
         self.id_edit = QtGui.QLineEdit()
         self.name_edit = QtGui.QLineEdit()
@@ -248,7 +250,7 @@ class Dialog(QtGui.QDialog):
         self.education_edit = QtGui.QComboBox()
         for education in constant.EDUCATION_NAME_LIST:
             self.education_edit.addItem(education)
-        self.is_busy_edit = QtGui.QLineEdit()
+        self.description_edit = QtGui.QLineEdit()
 
 
         grid = QtGui.QGridLayout()
@@ -281,6 +283,9 @@ class Dialog(QtGui.QDialog):
         count += 1
         grid.addWidget(education_label, count, 0)
         grid.addWidget(self.education_edit, count, 1)
+        count += 1
+        grid.addWidget(description_label, count, 0)
+        grid.addWidget(self.description_edit, count, 1)
 
         self.setWindowTitle(u'添加')
 
@@ -319,6 +324,7 @@ class Dialog(QtGui.QDialog):
         datas_dic['title'] = unicode(self.title_edit.currentText())
         datas_dic['position'] = unicode(self.position_edit.currentText())
         datas_dic['education'] = unicode(self.education_edit.currentText())
+        datas_dic['description'] = unicode(self.description_edit.text())
         return datas_dic
 
     def accept_fun(self):

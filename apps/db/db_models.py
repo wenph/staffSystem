@@ -20,6 +20,7 @@ class User(Base):
     title = Column(String)
     position = Column(String)
     education = Column(String)
+    description = Column(String)
     userproject = relationship('UserProject')
 
 class Project(Base):
@@ -34,6 +35,7 @@ class Project(Base):
     responsible_man = Column(String)
     start_time = Column(Date)
     end_time = Column(Date)
+    description = Column(String)
     userproject = relationship('UserProject')
 
 

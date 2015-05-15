@@ -170,6 +170,7 @@ class MyTable(QtGui.QTableWidget):
             dialog.responsible_man_edit.setText(project_item.responsible_man)
             dialog.start_time_edit.setDate(project_item.start_time)
             dialog.end_time_edit.setDate(project_item.end_time)
+            dialog.description_edit.setText(project_item.description)
             dialog.name_edit.setReadOnly(True)
             staff_str = StaffManager.search_staff_by_project_id(project_item.id)
             if staff_str == '':         # 项目里没人
@@ -227,6 +228,7 @@ class Dialog(QtGui.QDialog):
         end_time_label = QtGui.QLabel(u'结束时间')
         self.is_end_time_correct_label = QtGui.QLabel(u'结束时间不能小于开始时间！')
         self.is_end_time_correct_label.setVisible(False)
+        description_label = QtGui.QLabel(u'备注')
         candidate_label = QtGui.QLabel(u'待选人员')
         attendee_label = QtGui.QLabel(u'参加人员')
 
@@ -248,6 +250,7 @@ class Dialog(QtGui.QDialog):
         self.end_time_edit.setDate(QtCore.QDate.currentDate())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
+        self.description_edit = QtGui.QLineEdit()
 
         grid = QtGui.QGridLayout()
         #grid.setSpacing(10)
@@ -281,6 +284,10 @@ class Dialog(QtGui.QDialog):
         grid.addWidget(end_time_label, count, 0)
         grid.addWidget(self.end_time_edit, count, 1)
         grid.addWidget(self.is_end_time_correct_label, count, 2)
+        count += 1
+        grid.addWidget(description_label, count, 0)
+        grid.addWidget(self.description_edit, count, 1)
+
 
         myBoxLayout = QtGui.QHBoxLayout()
         listWidgetALayout = QtGui.QVBoxLayout()
@@ -346,6 +353,7 @@ class Dialog(QtGui.QDialog):
         datas_dic['responsible_man'] = unicode(self.responsible_man_edit.text())
         datas_dic['start_time'] = self.start_time_edit.date().toPyDate()
         datas_dic['end_time'] = self.end_time_edit.date().toPyDate()
+        datas_dic['description'] = unicode(self.description_edit.text())
         attendee_ids = ''
         attendee_names = ''
         for row_num in range(self.listWidgetB.count()):
