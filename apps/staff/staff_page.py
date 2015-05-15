@@ -163,7 +163,7 @@ class MyTable(QtGui.QTableWidget):
         if(len(indexes)) == 1:
             dialog = Dialog()
             id_text = self.item(indexes[0].row(), 0).text()
-            staff_item = StaffManager.get_one_item_by_id(int(id_text))
+            staff_item = StaffManager.get_one_item_by_user_id(int(id_text))
             dialog.name_edit.setText(staff_item.name)
             dialog.employee_id_edit.setText(staff_item.employee_id)
             dialog.phone_number_edit.setText(staff_item.phone_number)

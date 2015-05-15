@@ -160,7 +160,7 @@ class MyTable(QtGui.QTableWidget):
         if(len(indexes)) == 1:
             dialog = Dialog()
             id_text = self.item(indexes[0].row(), 0).text()
-            project_item = ProjectManager.get_one_item_by_id(int(id_text))
+            project_item = ProjectManager.get_one_item_by_project_id(int(id_text))
 
             dialog.name_edit.setText(project_item.name)
             dialog.search_id_edit.setText(project_item.search_id)
@@ -350,7 +350,7 @@ class Dialog(QtGui.QDialog):
         attendee_names = ''
         for row_num in range(self.listWidgetB.count()):
             row_text = unicode(self.listWidgetB.item(row_num).text())
-            staff = StaffManager.get_one_item_by_name(row_text)
+            staff = StaffManager.get_one_item_by_user_name(row_text)
             staff_id = staff.id
             staff_name = staff.name
             attendee_ids += str(staff_id) + ","

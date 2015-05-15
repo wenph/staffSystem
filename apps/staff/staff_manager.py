@@ -85,14 +85,17 @@ class StaffManager(object):
         session.commit()
 
     @staticmethod
-    def get_one_item_by_id(item_id):
-        item = session.query(User).filter(User.id == item_id).one()
+    def get_one_item_by_user_id(user_id):
+        item = session.query(User).filter(User.id == user_id).one()
         return item
 
     @staticmethod
-    def get_one_item_by_name(item_name):
-        item = session.query(User).filter(User.name == item_name).one()
-        return item
+    def get_one_item_by_user_name(item_name):
+        try:
+            item = session.query(User).filter(User.name == item_name).one()
+            return item
+        except:
+            return None
 
     @staticmethod
     def add_staff_project(project_id, attendee_ids_str):
@@ -121,23 +124,23 @@ class StaffManager(object):
     @staticmethod
     def search_staff_project_by_staff_name_and_data(**kwargs):
         search_datas = []
-        i = 0
-        staff_id = StaffManager.get_one_item_by_name(kwargs.get('name')).id
-        query_result = session.query(UserProject).filter(UserProject.user_id == staff_id).\
-            order_by(desc(UserProject.project_id)).all()
-        for query_meta in query_result:
-            if query_meta.project.start_time > kwargs.get('end_time') \
-                or query_meta.project.end_time < kwargs.get('start_time'):
-                pass
-            else:
-                search_datas.append([])
-                search_datas[i].append(query_meta.user.name)
-                search_datas[i].append(query_meta.project.name)
-                search_datas[i].append(query_meta.project.start_time)
-                search_datas[i].append(query_meta.project.end_time)
-                staff_str = StaffManager.search_staff_by_project_id(query_meta.project.id)
-                search_datas[i].append(staff_str)
-                i += 1
+        staff = StaffManager.get_one_item_by_user_name(kwargs.get('name'))
+        if staff not in (None, ''):
+            query_result = session.query(UserProject).filter(UserProject.user_id == staff.id).\
+                order_by(desc(UserProject.project_id)).all()
+            for query_meta in query_result:
+                if query_meta.project.start_time > kwargs.get('end_time') \
+                    or query_meta.project.end_time < kwargs.get('start_time'):
+                    pass
+                else:
+                    search_data_meta = []
+                    search_data_meta.append(query_meta.user.name)
+                    search_data_meta.append(query_meta.project.name)
+                    search_data_meta.append(query_meta.project.start_time)
+                    search_data_meta.append(query_meta.project.end_time)
+                    staff_str = StaffManager.search_staff_by_project_id(query_meta.project.id)
+                    search_data_meta.append(staff_str)
+                    search_datas.append(search_data_meta)
         return search_datas
 
     @staticmethod

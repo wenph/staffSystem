@@ -73,7 +73,7 @@ class ProjectManager(object):
         StaffManager.add_staff_project(item.id, dic.get('attendee_ids'))
 
     @staticmethod
-    def get_one_item_by_id(item_id):
+    def get_one_item_by_project_id(item_id):
         item = session.query(Project).filter(Project.id == item_id).one()
         return item
 
