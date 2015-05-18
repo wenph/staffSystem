@@ -17,7 +17,8 @@ class staff_tab(QtGui.QWidget):
         self.deleteButton = QtGui.QPushButton(u"删除人员")
         self.updateButton = QtGui.QPushButton(u"更新人员")
         self.allStaffButton = QtGui.QPushButton(u"所有人员")
-        self.idleStaffButton = QtGui.QPushButton(u"此刻闲置人员")
+        self.idleStaffButton = QtGui.QPushButton(u"在位人员")
+        self.idleStaffButton.setToolTip(u'未出差人员')
         name_label = QtGui.QLabel(u'姓名')
         self.name_edit = QtGui.QLineEdit()
         name_list = [unicode(query.name) for query in StaffManager.get_all_staff()]
@@ -34,6 +35,7 @@ class staff_tab(QtGui.QWidget):
         self.end_time_edit.setCalendarPopup(True)
         end_time_label = QtGui.QLabel(u'终止日期')
         searchButton = QtGui.QPushButton(u"搜索")
+        searchButton.setToolTip(u'搜索某人在某段时间内参加的工程情况')
 
         searchVbox = QtGui.QVBoxLayout()
         searchHbox1 = QtGui.QHBoxLayout()
@@ -210,7 +212,7 @@ class MyTable(QtGui.QTableWidget):
 class Dialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        #self.resize(240, 200)
+        self.resize(300, 300)
 
         id_label = QtGui.QLabel(u'ID')
         name_label = QtGui.QLabel(u'姓名')
@@ -250,7 +252,7 @@ class Dialog(QtGui.QDialog):
         self.education_edit = QtGui.QComboBox()
         for education in constant.EDUCATION_NAME_LIST:
             self.education_edit.addItem(education)
-        self.description_edit = QtGui.QLineEdit()
+        self.description_edit = QtGui.QTextEdit()
 
 
         grid = QtGui.QGridLayout()
@@ -285,7 +287,7 @@ class Dialog(QtGui.QDialog):
         grid.addWidget(self.education_edit, count, 1)
         count += 1
         grid.addWidget(description_label, count, 0)
-        grid.addWidget(self.description_edit, count, 1)
+        grid.addWidget(self.description_edit, count, 1, 2, 1)
 
         self.setWindowTitle(u'添加')
 
@@ -324,7 +326,7 @@ class Dialog(QtGui.QDialog):
         datas_dic['title'] = unicode(self.title_edit.currentText())
         datas_dic['position'] = unicode(self.position_edit.currentText())
         datas_dic['education'] = unicode(self.education_edit.currentText())
-        datas_dic['description'] = unicode(self.description_edit.text())
+        datas_dic['description'] = unicode(self.description_edit.toPlainText())
         return datas_dic
 
     def accept_fun(self):

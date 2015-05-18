@@ -35,6 +35,7 @@ class project_tab(QtGui.QWidget):
         self.end_time_edit.setCalendarPopup(True)
         end_time_label = QtGui.QLabel(u'终止日期')
         searchNameButton = QtGui.QPushButton(u"按名称搜索")
+        searchNameButton.setToolTip(u'按工程名搜索，支持模糊搜索')
         searchDateButton = QtGui.QPushButton(u"按日期搜索")
 
         searchVbox = QtGui.QVBoxLayout()
@@ -205,7 +206,7 @@ class MyTable(QtGui.QTableWidget):
 class Dialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
-        #self.resize(240, 200)
+        self.resize(500, 200)
 
         id_label = QtGui.QLabel(u'ID')
         name_label = QtGui.QLabel(u'工程名称')
@@ -250,7 +251,7 @@ class Dialog(QtGui.QDialog):
         self.end_time_edit.setDate(QtCore.QDate.currentDate())
         self.end_time_edit.setDisplayFormat("yyyy-MM-dd")
         self.end_time_edit.setCalendarPopup(True)
-        self.description_edit = QtGui.QLineEdit()
+        self.description_edit = QtGui.QTextEdit()
 
         grid = QtGui.QGridLayout()
         #grid.setSpacing(10)
@@ -295,12 +296,11 @@ class Dialog(QtGui.QDialog):
 
         self.listWidgetA = QtGui.QListWidget()
         self.listWidgetB = QtGui.QListWidget()
-        self.addButton = QtGui.QPushButton()
-        self.addButton.setText("-->")
-        self.removeButton = QtGui.QPushButton()
-        self.removeButton.setText("<--")
+        self.addButton = QtGui.QPushButton("-->")
+        self.removeButton = QtGui.QPushButton("<--")
 
         buttonLayout = QtGui.QVBoxLayout()
+        buttonLayout.addWidget(QtGui.QLabel())
         buttonLayout.addWidget(self.addButton)
         buttonLayout.addWidget(self.removeButton)
 
@@ -353,7 +353,7 @@ class Dialog(QtGui.QDialog):
         datas_dic['responsible_man'] = unicode(self.responsible_man_edit.text())
         datas_dic['start_time'] = self.start_time_edit.date().toPyDate()
         datas_dic['end_time'] = self.end_time_edit.date().toPyDate()
-        datas_dic['description'] = unicode(self.description_edit.text())
+        datas_dic['description'] = unicode(self.description_edit.toPlainText())
         attendee_ids = ''
         attendee_names = ''
         for row_num in range(self.listWidgetB.count()):

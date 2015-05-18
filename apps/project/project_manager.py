@@ -25,9 +25,9 @@ class ProjectManager(object):
         session.commit()
 
     @staticmethod
-    def project_data_format(query):
+    def project_data_format(query_result):
         search_datas = []
-        for query_meta in query:
+        for query_meta in query_result:
             query_meta_list = []
             query_meta_list.append(query_meta.id)
             query_meta_list.append(query_meta.name)
