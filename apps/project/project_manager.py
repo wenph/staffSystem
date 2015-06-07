@@ -26,6 +26,9 @@ class ProjectManager(object):
 
     @staticmethod
     def project_data_format(query_result):
+        '''
+        根据搜索结果组装成表格所需数据格式
+        '''
         search_datas = []
         for query_meta in query_result:
             query_meta_list = []

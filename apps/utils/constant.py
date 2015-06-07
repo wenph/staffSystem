@@ -1,5 +1,6 @@
 #coding=cp936
 __author__ = 'admin'
+import datetime
 
 # 职称
 TITLE_NAME_LIST = [u'教授', u'副教授', u'工程师']
@@ -31,7 +32,8 @@ STAFF_SEARCH_COLUMN = [
     u'项目',
     u'开始时间',
     u'结束时间',
-    u'参与此项目人员'
+    u'参与此项目人员',
+    u'出差总天数'
 ]
 # 工程页面的列名
 PROJECT_COLUMN = [
@@ -47,3 +49,11 @@ PROJECT_COLUMN = [
     u'参加人员',
     u'备注'
 ]
+
+today = datetime.date.today()
+first = datetime.date(day=1, month=today.month, year=today.year)
+lastMonth = first - datetime.timedelta(days=1)
+ONE_MONTH_TIME = {
+    'start_time': datetime.date(day=20, month=lastMonth.month, year=lastMonth.year),
+    'end_time': datetime.date(day=today.day if today.day <= 20 else 20, month=today.month, year=today.year)
+}

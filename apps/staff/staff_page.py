@@ -137,7 +137,7 @@ class MyTable(QtGui.QTableWidget):
             j = 0
             for meta in datas_meta:
                 newItem = QtGui.QTableWidgetItem(unicode(meta))
-                self.setItem(i,j,newItem)
+                self.setItem(i, j, newItem)
                 j += 1
             i += 1
 
@@ -188,7 +188,7 @@ class MyTable(QtGui.QTableWidget):
             ToolsManager.information_box(u"注意", u"请选择一行进行更新!")
 
     def search_staff_by_name_and_date(self, **kwargs):
-        search_datas = StaffManager.search_staff_project_by_staff_name_and_data(**kwargs)
+        outing_days, search_datas = StaffManager.calculate_outing_info(**kwargs)
         head_labels = constant.STAFF_SEARCH_COLUMN
         self.setColumnCount(len(head_labels))
         self.setHorizontalHeaderLabels(head_labels)

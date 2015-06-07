@@ -2,10 +2,12 @@
 __author__ = 'admin'
 
 import datetime
+import copy
 from apps.db.db_models import User, UserProject, Project
 from apps.db.db_session import session
 from apps.utils.tools import ToolsManager
 from sqlalchemy import and_, or_, except_, desc
+from apps.utils import constant
 
 class StaffManager(object):
     @staticmethod
@@ -25,6 +27,9 @@ class StaffManager(object):
 
     @staticmethod
     def search_all_staff():
+        '''
+        展示所有员工信息
+        '''
         query = StaffManager.get_all_staff()
         search_datas = []
         for query_meta in query:
@@ -40,14 +45,19 @@ class StaffManager(object):
             query_meta_list.append(query_meta.education)
             project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
             query_meta_list.append(project_str)
-            out_door_days = 0
-            query_meta_list.append(out_door_days)
+            para = copy.deepcopy(constant.ONE_MONTH_TIME)
+            para['name'] = query_meta.name
+            outing_days, staff_data = StaffManager.calculate_outing_info(**para)
+            query_meta_list.append(outing_days)
             query_meta_list.append(query_meta.description)
             search_datas.append(query_meta_list)
         return search_datas
 
     @staticmethod
     def search_idle_staff():
+        '''
+        展示在位（未出差）员工信息
+        '''
         query = StaffManager.get_all_staff()
         search_datas = []
         for query_meta in query:
@@ -63,8 +73,10 @@ class StaffManager(object):
             query_meta_list.append(query_meta.education)
             project_str = StaffManager.search_project_by_user_id_and_now(query_meta.id)
             query_meta_list.append(project_str)
-            out_door_days = 0
-            query_meta_list.append(out_door_days)
+            para = copy.deepcopy(constant.ONE_MONTH_TIME)
+            para['name'] = query_meta.name
+            outing_days, staff_data = StaffManager.calculate_outing_info(**para)
+            query_meta_list.append(outing_days)
             query_meta_list.append(query_meta.description)
             if project_str == '':  # 闲置人员
                 search_datas.append(query_meta_list)
@@ -181,3 +193,33 @@ class StaffManager(object):
         if project_str != '':
             project_str = project_str[:-1]
         return project_str
+
+    @staticmethod
+    def calculate_outing_info(**kwargs):
+        '''
+        计算出差时间
+        '''
+        outing_days = 0
+        start_time = kwargs.get('start_time')
+        end_time = kwargs.get('end_time')
+        search_datas = StaffManager.search_staff_project_by_staff_name_and_data(**kwargs)
+        for data in search_datas:
+            project_st = data[2]
+            project_et = data[3]
+            if project_st <= start_time:
+                if project_et <= end_time:
+                    days = (project_et - start_time).days + 1
+                    outing_days += days
+                elif project_et > end_time:
+                    days = (end_time - start_time).days + 1
+                    outing_days += days
+            elif project_st > start_time:
+                if project_et <= end_time:
+                    days = (project_et - project_st).days + 1
+                    outing_days += days
+                elif project_et > end_time:
+                    days = (end_time - project_st).days + 1
+                    outing_days += days
+        for data in search_datas:
+            data.append(outing_days)
+        return outing_days, search_datas
